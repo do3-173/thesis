@@ -1,0 +1,74 @@
+% !TeX encoding = UTF-8
+% !TeX program = pdflatex
+% !TeX spellcheck = en_US
+\documentclass[binding=0.6cm]{sapthesis}
+\usepackage{microtype}
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\hypersetup{pdftitle={My Master Thesis},pdfauthor={Your Name}}
+\title{Your Thesis Title\\Goes Here}
+\author{Your Full Name}
+\IDnumber{Your Student ID}
+\course{Your Course Name (keep official Italian name)}
+\courseorganizer{Your Faculty/Department\\(e.g., Facoltà di Scienze Matematiche, Fisiche e Naturali)}
+\AcademicYear{2024/2025}
+\advisor{Prof. Your Advisor Name}
+\coadvisor{Dr. Your Co-advisor Name (if any)}
+\authoremail{your.email@example.com}
+\copyyear{2025}
+\thesistype{Master thesis}
+\begin{document}
+\frontmatter
+\maketitle
+\dedication{Dedicated to\\my family and mentors}
+\begin{abstract}
+This thesis presents research on [your research topic]. 
+The main objectives of this work are to [list main objectives].
+Through [methodology description], we achieved [main results/contributions].
+The findings demonstrate [key conclusions and implications].
+\end{abstract}
+
+% Optional: Add acknowledgments
+\begin{acknowledgments}
+I would like to express my sincere gratitude to my advisor Prof. [Name] 
+for their guidance and support throughout this research.
+I also thank [other people you want to acknowledge].
+\end{acknowledgments}
+
+\tableofcontents
+
+\mainmatter
+\chapter{Introduction}
+% Introduction chapter content
+This chapter introduces the research problem, objectives, and structure of the thesis.
+
+\section{Background and Motivation}
+% Provide background information and motivation for your research
+
+\section{Research Objectives}
+% Clearly state your research objectives
+
+\section{Thesis Structure}
+% Briefly describe the structure of your thesis
+
+\chapter{Literature Review}
+% Review of related work and state of the art
+
+\chapter{Methodology}
+% Describe your research methodology
+
+\chapter{Results and Analysis}
+% Present and analyze your results
+
+\chapter{Conclusions}
+% Summarize your findings and contributions
+% Discuss limitations and future work
+
+\backmatter
+\cleardoublepage
+\phantomsection % Give this command only if hyperref is loaded
+\addcontentsline{toc}{chapter}{\bibname}
+% Here put the code for the bibliography. You can use BibTeX or
+% the BibLaTeX package or the simple environment thebibliography.
+\end{document}

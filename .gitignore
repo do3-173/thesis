@@ -1,0 +1,212 @@
+# LaTeX auxiliary files
+*.aux
+*.lof
+*.log
+*.lot
+*.fls
+*.out
+*.toc
+*.fmt
+*.fot
+*.cb
+*.cb2
+.*.lb
+
+# LaTeX intermediate files
+*.dvi
+*.xdv
+*-converted-to.*
+
+# LaTeX bibliography files
+*.bbl
+*.bcf
+*.blg
+*-blx.aux
+*-blx.bib
+*.run.xml
+
+# LaTeX build tool files
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+*.synctex(busy)
+*.pdfsync
+
+# LaTeX beamer files
+*.nav
+*.pre
+*.snm
+*.vrb
+
+# LaTeX glossaries
+*.acn
+*.acr
+*.glg
+*.glo
+*.gls
+*.glsdefs
+*.lzo
+*.lzs
+
+# LaTeX hyperref
+*.figlist
+*.makefile
+*.fls
+*.fdb_latexmk
+
+# LaTeX misc
+*.backup
+*~
+*.tmp
+*.temp
+
+# LaTeX nomenclature
+*.nlg
+*.nlo
+*.nls
+
+# LaTeX changes
+*.soc
+
+# LaTeX todo notes
+*.tdo
+
+# LaTeX xindy
+*.xdy
+
+# LaTeX makeindex
+*.idx
+*.ilg
+*.ind
+
+# LaTeX algorithm2e
+*.alg
+*.loa
+
+# LaTeX achemso
+acs-*.bib
+
+# LaTeX amsthm
+*.thm
+
+# LaTeX endnotes
+*.ent
+
+# LaTeX fixme
+*.lox
+
+# LaTeX glossaries-extra
+*.glstex
+
+# LaTeX gnuplottex
+*-gnuplottex-*
+
+# LaTeX latexindent backup files
+*.bak[0-9]
+*.bak[0-9][0-9]
+
+# LaTeX listings
+*.lol
+
+# LaTeX luatex
+*.ltjruby
+
+# LaTeX minitoc
+*.maf
+*.mlf
+*.mlt
+*.mtc[0-9]*
+*.slf[0-9]*
+*.slt[0-9]*
+*.stc[0-9]*
+
+# LaTeX minted
+_minted*
+*.pyg
+
+# LaTeX morewrites
+*.mw
+
+# LaTeX newpax
+*.newpax
+
+# LaTeX nomencl
+*.nlg
+*.nlo
+*.nls
+
+# LaTeX pax
+*.pax
+
+# LaTeX pdfpcnotes
+*.pdfpc
+
+# LaTeX pythontex
+*.pytxcode
+pythontex-files-*/
+
+# LaTeX sagetex
+*.sagetex.sage
+*.sagetex.py
+*.sagetex.scmd
+
+# LaTeX scrwfile
+*.wrt
+
+# LaTeX sympy
+*.upa
+*.upb
+
+# LaTeX TikZ & PGF
+*.auxlock
+*.brf
+*.ent
+*.lox
+
+# LaTeX todonotes
+*.tdo
+
+# LaTeX vhistory
+*.hst
+*.ver
+
+# LaTeX WinEdt
+*.wbk
+
+# LaTeX xindy
+*.xdy
+
+# LaTeX xmpincl
+*.xmpi
+
+# LaTeX xwatermark
+*.xwm
+
+# Keep only source files and final PDF
+# Everything else will be ignored
+!*.tex
+!*.pdf
+!*.bib
+!*.cls
+!*.sty
+!*.md
+!.gitignore
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-*
