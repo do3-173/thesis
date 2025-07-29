@@ -210,3 +210,20 @@ Thumbs.db
 .vscode/
 .idea/
 *.sublime-*
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Venv
+venv/
+.env/
+*.venv
+*.envrc
+
+# Python cache files
+__pycache__/
+*.py[cod]
