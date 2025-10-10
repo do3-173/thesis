@@ -13,6 +13,8 @@
 \usepackage{booktabs}
 \usepackage[numbers]{natbib}
 
+\newcommand{\loris}[1]{\textcolor{blue}{#1}}
+
 % Set paragraph spacing without indentation
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{1em}
@@ -71,14 +73,18 @@ The third objective involves conducting \textbf{systematic empirical evaluation}
 
 The fourth objective addresses \textbf{practical framework design} that bridges the gap between research prototypes and real-world deployment requirements. This involves developing systems that address genuine constraints faced by practitioners, including computational efficiency for large-scale deployment, interpretability requirements for regulated domains, and robust bias mitigation strategies that ensure fair and ethical feature generation. The framework must balance theoretical optimality with practical usability, providing clear guidelines for implementation and deployment.
 
+\loris{Furthermore, this thesis aims also to employ LLM to do features engineering on text features. LLMs are originally designed to handle text, this characteristics can be combined to the reasoning capability to automatically design features that efficiently encode the text information.}
+
 The final objective provides \textbf{critical analysis} that offers a balanced and nuanced assessment of when and how LLM-based approaches provide genuine advantages over traditional automated feature engineering methods. This analysis identifies specific use cases and application scenarios where the unique capabilities of LLMs—such as semantic understanding and few-shot learning—provide substantial benefits, while also acknowledging scenarios where traditional statistical methods remain superior. This objective ensures that the research contributes realistic expectations and practical guidance rather than overly optimistic claims about LLM capabilities.
+
+\loris{All the topic are really interesting, they are perfect for a thesis but they are slightly different to our work. The topics highlight 'literature review' more then a experimental work. What about LLMs for text based feature engineering? Reinforcement Learning by Machine Learning Feedback can wait for the moment.}
 
 \section{Research Questions}
 \label{sec:research_questions}
 
 This research is guided by several fundamental questions that address both theoretical understanding and practical implementation challenges, each requiring comprehensive investigation to advance the field meaningfully.
 
-A central question concerns how different prompting strategies affect the quality and effectiveness of LLM-generated features for tabular data analysis. Specifically, this research investigates the comparative performance of data-driven approaches, which provide statistical samples to guide LLM reasoning, versus text-based methods that rely primarily on semantic descriptions and contextual information. Understanding these differences is crucial because they represent fundamentally different paradigms for leveraging LLM capabilities—one emphasizing pattern recognition from examples, the other focusing on knowledge-based reasoning. The investigation extends beyond simple performance metrics to examine the types of features generated, their interpretability, and their robustness across different dataset characteristics.
+A central question concerns how different prompting strategies affect the quality and effectiveness of LLM-generated features for tabular data analysis \loris{(Prompt engineering is a mess, I suggest you to not spend too much time on it)}. Specifically, this research investigates the comparative performance of data-driven approaches, which provide statistical samples to guide LLM reasoning, versus text-based methods that rely primarily on semantic descriptions and contextual information. Understanding these differences is crucial because they represent fundamentally different paradigms for leveraging LLM capabilities—one emphasizing pattern recognition from examples, the other focusing on knowledge-based reasoning. The investigation extends beyond simple performance metrics to examine the types of features generated, their interpretability, and their robustness across different dataset characteristics.
 
 Another critical research question addresses the optimal methods for integrating domain knowledge and contextual information into LLM-based feature engineering systems. This challenge is multifaceted, encompassing questions about how to effectively encode domain expertise in prompts, how to balance general statistical principles with domain-specific insights, and how to ensure that contextual information enhances rather than constrains the feature generation process. The research explores various approaches for knowledge integration, including retrieval-augmented generation techniques, structured prompt engineering, and hybrid systems that combine multiple information sources.
 
@@ -93,7 +99,7 @@ Finally, the research examines the computational and scalability trade-offs asso
 
 This thesis makes several significant contributions to the field of automated feature engineering and the application of Large Language Models to structured data analysis, each addressing critical gaps in current understanding and practice.
 
-The first major contribution is a \textbf{comprehensive survey and theoretical framework} that systematically reviews and categorizes existing LLM-based feature engineering approaches. Unlike previous reviews that focus on narrow subsets of methods, this survey provides a unified taxonomic framework that encompasses the full spectrum of current approaches, from data-driven statistical inference methods to text-based semantic reasoning techniques. The survey identifies fundamental methodological patterns that characterize successful approaches, establishes clear performance baselines across different domains and datasets, and provides critical analysis of limitations that constrain current applications. This theoretical foundation is essential for advancing the field beyond ad-hoc experimental approaches toward principled methodological development.
+The first major contribution is a \textbf{comprehensive survey and theoretical framework} that systematically reviews and categorizes existing LLM-based feature engineering approaches. Unlike previous reviews that focus on narrow subsets of methods, this survey provides a unified taxonomic framework that encompasses the full spectrum of current approaches \loris{Does a literature review already exist? \cite{li2024exploring}} , from data-driven statistical inference methods to text-based semantic reasoning techniques. The survey identifies fundamental methodological patterns that characterize successful approaches, establishes clear performance baselines across different domains and datasets, and provides critical analysis of limitations that constrain current applications. This theoretical foundation is essential for advancing the field beyond ad-hoc experimental approaches toward principled methodological development.
 
 The second contribution involves significant \textbf{methodological innovations} through the development of novel hybrid approaches that effectively combine the semantic reasoning capabilities of Large Language Models with the statistical rigor of traditional feature selection techniques. Rather than treating these paradigms as competing alternatives, the research develops synergistic integration strategies that leverage the complementary strengths of both approaches. These hybrid methods address key limitations of pure LLM-based approaches, such as statistical unreliability and computational inefficiency, while overcoming the semantic blindness of traditional statistical methods. The methodological innovations include novel prompt engineering techniques, integration frameworks for combining multiple information sources, and validation protocols that ensure both statistical validity and semantic meaningfulness.
 
@@ -102,6 +108,8 @@ The third contribution provides \textbf{extensive empirical insights} through sy
 The fourth contribution addresses the critical challenge of bias and fairness through the development of a \textbf{systematic bias analysis framework} that provides both detection mechanisms and mitigation strategies for LLM-generated features. Given the increasing recognition of bias propagation in AI systems, this framework addresses a critical gap in current LLM-based feature engineering approaches. The framework includes novel techniques for identifying potentially biased features, validation protocols for assessing fairness across different demographic groups, and practical mitigation strategies that can reduce bias without sacrificing predictive performance. This contribution is essential for enabling responsible deployment of LLM-based feature engineering in sensitive applications.
 
 The final contribution establishes \textbf{rigorous performance benchmarking standards} through comprehensive comparison of LLM-based approaches against traditional automated feature engineering methods across diverse datasets and evaluation metrics. This benchmarking goes beyond simple accuracy comparisons to include computational efficiency, scalability, interpretability, and robustness analysis. The benchmarking framework provides standardized evaluation protocols that enable fair comparison across different methods and establish clear performance baselines for future research. This contribution is crucial for moving the field toward more rigorous experimental standards and avoiding overly optimistic claims about LLM capabilities.
+
+\loris{In my opinion Research Objectives - Research Questions - Contribution are repetitive. What are the differences?}
 
 \section{Thesis Structure}
 \label{sec:structure}
@@ -125,6 +133,22 @@ Each chapter builds upon the previous ones to develop a comprehensive understand
 
 The intersection of Large Language Models (LLMs) and tabular data analysis represents an emerging and rapidly evolving research domain. This chapter provides a comprehensive review of the current state-of-the-art in LLM-based feature engineering and selection, examining methodological approaches, empirical findings, and critical limitations that inform our research direction.
 
+\section{Feature Engineering}
+\label{sec:traditional_fe}
+\loris{The first section is to introduce the feature engineering for tabular data.}
+
+\subsection{Preprocessing (Not sure)}
+
+\subsection{Feature Creation}
+
+\subsection{Feature Selection}
+\loris{ Mention also dimensionality reduction. }
+
+\subsection{Others if needed...}
+
+\subsection{AutoML}
+\loris{Feature engineering is tedious are time consuming. To face this challenge several framework have been developed. These techniques are called AutoML.}
+
 \section{Foundations of LLM-Based Feature Engineering}
 \label{sec:foundations}
 
@@ -134,6 +158,15 @@ Recent advances in large language models, particularly with the development of m
 
 \section{Taxonomies and Methodological Frameworks}
 \label{sec:taxonomies}
+
+\loris{ In this section can help to have a Figure like this}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.7\textwidth]{taxonomy.png}
+    \caption{Esempio di tassonomia.}
+    \label{fig:taxonomy}
+\end{figure}
 
 \subsection{Data-Centric Categorization}
 
@@ -179,7 +212,9 @@ Extensive empirical evaluation across multiple studies reveals several consisten
 
 Li et al. \cite{li2024exploring} demonstrate through comprehensive experiments across diverse datasets that text-based feature selection consistently outperforms data-driven methods in scenarios with limited training data. This superiority manifests across multiple critical dimensions that collectively establish the robustness of text-based approaches. Text-based methods consistently achieve higher performance metrics, including Area Under the Receiver Operating Characteristic curve (AUROC) for classification tasks and Mean Absolute Error (MAE) for regression tasks, across different dataset types ranging from medical and financial domains to social and behavioral datasets. The stability advantage is evident in the significantly lower variance in performance across different data availability settings, indicating that text-based approaches maintain consistent quality regardless of the specific sample size or data distribution characteristics. Finally, the robustness of text-based methods is demonstrated through their consistent performance regardless of specific dataset characteristics such as dimensionality, class balance, or feature correlation structures, making them more reliable for practical deployment across diverse application domains.
 
-The authors report that text-based approaches using GPT-4 achieve performance comparable to traditional methods like Minimum Redundancy Maximum Relevance (MRMR) selection and Recursive Feature Elimination (RFE), while requiring no training data.
+The authors report that text-based approaches using GPT-4 achieve performance comparable to traditional methods like Minimum Redundancy Maximum Relevance (MRMR) selection and Recursive Feature Elimination (RFE), while requiring no training data. 
+
+\loris{ Both techniques must be introduced. Maybe an introduction to standard feature engineering methodologies can be useful.}
 
 A significant finding across multiple studies is the strong correlation between LLM size and feature engineering effectiveness, particularly for text-based approaches. Li et al. observe clear scaling laws where larger models (GPT-4 vs. ChatGPT vs. LLaMA-2) demonstrate progressively better feature selection capabilities. This scaling behavior is less pronounced for data-driven methods, suggesting that semantic understanding rather than pure computational capacity drives effectiveness in feature engineering tasks.
 
@@ -192,6 +227,8 @@ The literature reveals particular promise for LLM-based feature engineering in s
 Medical and biomedical applications represent a particularly promising area for LLM-based feature engineering. Li et al. introduce Retrieval-Augmented Feature Selection (RAFS) specifically designed for medical applications involving high-dimensional genomic data. RAFS addresses the challenge of domain-specific terminology by retrieving metadata from authoritative sources such as the National Center for Biotechnology Information (NCBI). In experiments with The Cancer Genome Atlas (TCGA) Lung Adenocarcinoma dataset, RAFS demonstrates significant improvements over random feature selection while maintaining privacy by avoiding direct data sharing.
 
 The RAFS approach demonstrates measurable improvements across multiple evaluation metrics, achieving an Antolini's Concordance score of 0.6566 compared to 0.6516 for random feature selection, indicating better discrimination capability in survival prediction tasks. The method also shows improvement in the Integrated Brier Score, achieving 0.1830 versus 0.1833 for random selection, suggesting better calibration of predicted survival probabilities over time. Additionally, RAFS achieves superior D-Calibration performance with a score of 1.7666 compared to 2.0255 for random selection, indicating more reliable probability estimates across different risk groups.
+
+\loris{These metrics are not common, they should be introduced too.}
 
 Han et al. demonstrate particular strength in complex domains requiring domain-specific knowledge, including medical prediction tasks and game-theoretic scenarios. Their framework achieves state-of-the-art performance across 13 diverse datasets, with particularly notable improvements in scenarios where traditional feature engineering struggles due to limited domain expertise availability.
 
@@ -216,6 +253,8 @@ Current LLMs face constraints in processing datasets with large numbers of featu
 
 \section{Advanced Frameworks and Methodological Innovations}
 \label{sec:advanced}
+
+\loris{ Some Figure that represent the workflow and some example prompt can help to understand the key differences of the techniques.}
 
 \subsection{CAAFE: Context-Aware Automated Feature Engineering}
 
