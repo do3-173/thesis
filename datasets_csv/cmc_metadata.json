@@ -1,0 +1,42 @@
+{
+  "dataset_name": "cmc",
+  "n_samples": 1473,
+  "n_features": 9,
+  "feature_names": [
+    "Wifes_age",
+    "Wifes_education",
+    "Husbands_education",
+    "Number_of_children_ever_born",
+    "Wifes_religion",
+    "Wifes_now_working%3F",
+    "Husbands_occupation",
+    "Standard-of-living_index",
+    "Media_exposure"
+  ],
+  "target_name": "target",
+  "description": "**Author**: [Tjen-Sien Lim](limt@stat.wisc.edu) \n**Source**: [As obtained from UCI](https://archive.ics.uci.edu/ml/datasets/Contraceptive+Method+Choice)\n**Please cite**: [UCI citation](https://archive.ics.uci.edu/ml/citation_policy.html)\n\n1. Title: Contraceptive Method Choice\n \n 2. Sources:\n    (a) Origin:  This dataset is a subset of the 1987 National Indonesia\n                 Contraceptive Prevalence Survey\n    (b) Creator: Tjen-Sien Lim (limt@stat.wisc.edu)\n    (c) Donor:   Tjen-Sien Lim (li...",
+  "data_types": {
+    "Wifes_age": "int64",
+    "Wifes_education": "category",
+    "Husbands_education": "category",
+    "Number_of_children_ever_born": "int64",
+    "Wifes_religion": "category",
+    "Wifes_now_working%3F": "category",
+    "Husbands_occupation": "category",
+    "Standard-of-living_index": "category",
+    "Media_exposure": "category",
+    "target": "category"
+  },
+  "missing_values": {
+    "Wifes_age": 0,
+    "Wifes_education": 0,
+    "Husbands_education": 0,
+    "Number_of_children_ever_born": 0,
+    "Wifes_religion": 0,
+    "Wifes_now_working%3F": 0,
+    "Husbands_occupation": 0,
+    "Standard-of-living_index": 0,
+    "Media_exposure": 0,
+    "target": 0
+  }
+}

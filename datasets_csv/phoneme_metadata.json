@@ -1,0 +1,30 @@
+{
+  "dataset_name": "phoneme",
+  "n_samples": 5404,
+  "n_features": 5,
+  "feature_names": [
+    "V1",
+    "V2",
+    "V3",
+    "V4",
+    "V5"
+  ],
+  "target_name": "target",
+  "description": "**Author**: Dominique Van Cappel, THOMSON-SINTRA  \n**Source**: [KEEL](http://sci2s.ugr.es/keel/dataset.php?cod=105#sub2), [ELENA](https://www.elen.ucl.ac.be/neural-nets/Research/Projects/ELENA/databases/REAL/phoneme/) - 1993  \n**Please cite**: None  \n\nThe aim of this dataset is to distinguish between nasal (class 0) and oral sounds (class 1). Five different attributes were chosen to characterize each vowel: they are the amplitudes of the five first harmonics AHi, normalised by the total energy E...",
+  "data_types": {
+    "V1": "float64",
+    "V2": "float64",
+    "V3": "float64",
+    "V4": "float64",
+    "V5": "float64",
+    "target": "category"
+  },
+  "missing_values": {
+    "V1": 0,
+    "V2": 0,
+    "V3": 0,
+    "V4": 0,
+    "V5": 0,
+    "target": 0
+  }
+}

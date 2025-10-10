@@ -227,3 +227,6 @@ venv/
 # Python cache files
 __pycache__/
 *.py[cod]
+
+files_for_me/
+AutogluonModels/
