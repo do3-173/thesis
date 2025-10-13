@@ -1,0 +1,12 @@
+# LLM Configuration - Anthropic Claude
+# Configuration for using Anthropic Claude models
+
+# @package _global_
+enabled: true
+provider: "anthropic"
+model: "claude-3-haiku-20240307"
+
+# Rate limiting and retry settings
+max_retries: 3
+retry_delay: 1.0
+request_timeout: 30

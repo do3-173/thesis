@@ -1,0 +1,14 @@
+# AutoGluon Benchmark Configuration - Standard Settings
+# Configuration for running AutoGluon tabular benchmarks
+
+# @package _global_
+autogluon:
+  enabled: true
+  time_limit: 300  # 5 minutes per method
+  preset: "medium_quality"
+  
+  # Methods to run
+  methods:
+    ag_stack_no_text: true
+    ag_stack_with_ngram: true
+    random_forest_tfidf: true

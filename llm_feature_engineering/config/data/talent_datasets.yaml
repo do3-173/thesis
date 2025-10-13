@@ -1,0 +1,18 @@
+# Data Configuration - TALENT Benchmark Datasets
+# Configuration for loading datasets from TALENT benchmark library
+
+# @package _global_
+source: "talent"  # local, talent, or auto
+dataset_dir: "datasets_csv"  # Fallback for local datasets
+test_size: 0.2
+
+# TALENT datasets to process (actually available locally)
+datasets:
+  - "cmc"
+  - "electricity" 
+  - "eye_movements"
+  - "kc1"
+  - "phoneme"
+  - "pol"
+  - "splice"
+  - "vehicle"

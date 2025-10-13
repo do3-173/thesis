@@ -1,0 +1,14 @@
+# Data Configuration - Local CSV Datasets
+# Configuration for loading datasets from local CSV files
+
+# @package _global_
+source: "local"  # local, talent, or auto
+dataset_dir: "../../../datasets_csv"
+test_size: 0.2
+
+# Specific datasets to process
+# Use "all" to process all available datasets
+# Or provide a list: ["cmc", "vehicle", "electricity"]
+datasets: 
+  - "cmc"
+  - "electricity"

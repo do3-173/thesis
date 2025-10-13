@@ -1,0 +1,100 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Experiment results
+experiments/*/
+!experiments/.gitkeep
+AutogluonModels/
+*.pkl
+*.joblib
+
+# Hydra outputs
+.hydra/
+outputs/
+
+# Results and analysis
+results_analysis/
+*.png
+*.jpg
+*.jpeg
+*.pdf
+
+# Logs
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# API Keys and secrets
+.env
+.env.local
+.env.production
+.env.staging
+*.key
+
+# Data files (keep datasets in dedicated data directories)
+*.csv
+*.json
+*.h5
+*.hdf5
+*.parquet
+
+# Model checkpoints
+checkpoints/
+models/
+model_*/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json

@@ -1,0 +1,6 @@
+# AutoGluon Benchmark Configuration - Disabled
+# Configuration for running experiments without AutoGluon benchmarks
+
+# @package _global_
+autogluon:
+  enabled: false

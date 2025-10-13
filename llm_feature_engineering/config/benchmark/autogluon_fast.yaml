@@ -1,0 +1,14 @@
+# AutoGluon Benchmark Configuration - Fast Settings
+# Configuration for quick AutoGluon benchmarks
+
+# @package _global_
+autogluon:
+  enabled: true
+  time_limit: 120  # 2 minutes per method
+  preset: "good_quality_faster_inference"
+  
+  # Methods to run (reduced set)
+  methods:
+    ag_stack_no_text: true
+    ag_stack_with_ngram: false
+    random_forest_tfidf: true

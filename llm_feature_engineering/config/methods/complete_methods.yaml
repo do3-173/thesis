@@ -1,0 +1,74 @@
+# Complete Methods Configuration
+# All feature selection methods + baseline classifiers
+
+# @package _global_
+
+# Text-based LLM feature selection (enabled)
+text_based:
+  enabled: true
+  top_k: 5
+  temperature: 0.1
+  max_tokens: 300
+
+# LLM4FS hybrid approach (enabled) 
+llm4fs:
+  enabled: true
+  top_k: 5
+  temperature: 0.1
+  max_tokens: 3000
+  sample_size: 200
+
+# MLP weights feature selection (enabled)
+mlp_weights:
+  enabled: true
+  top_k: 5
+  hidden_layer_sizes: [64, 32]
+  max_iter: 200
+  random_state: 42
+
+# MLP permutation feature selection (enabled)
+mlp_permutation:
+  enabled: true
+  top_k: 5
+  hidden_layer_sizes: [64, 32]
+  max_iter: 200
+  n_repeats: 3
+  random_state: 42
+
+# Traditional methods
+traditional:
+  mutual_info:
+    enabled: true
+    top_k: 5
+  
+  random_forest:
+    enabled: true
+    top_k: 5
+    n_estimators: 100
+  
+  univariate:
+    enabled: true
+    top_k: 5
+
+# Baseline classifiers for evaluation
+baseline_classifiers:
+  logistic_regression:
+    enabled: true
+    random_state: 42
+    max_iter: 1000
+  
+  mlp:
+    enabled: true
+    random_state: 42
+    max_iter: 200
+    hidden_layer_sizes: [50]
+  
+  random_forest_classifier:
+    enabled: true
+    random_state: 42
+    n_estimators: 100
+  
+  xgboost:
+    enabled: true
+    random_state: 42
+    n_estimators: 100

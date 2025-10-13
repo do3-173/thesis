@@ -1,0 +1,12 @@
+# LLM Configuration - OpenAI GPT
+# Configuration for using OpenAI GPT models
+
+# @package _global_
+enabled: true
+provider: "openai"
+model: "gpt-3.5-turbo"
+
+# Rate limiting and retry settings
+max_retries: 3
+retry_delay: 1.0
+request_timeout: 30

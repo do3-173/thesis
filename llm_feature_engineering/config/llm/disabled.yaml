@@ -1,0 +1,7 @@
+# LLM Configuration - Disabled
+# Configuration for running experiments without LLM methods
+
+# @package _global_
+enabled: false
+provider: null
+model: null

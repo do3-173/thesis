@@ -1,0 +1,24 @@
+# Evaluation Configuration - Fast Settings
+# Configuration for quick evaluation with fewer trials
+
+# @package _global_
+
+# Number of trials for statistical evaluation
+n_trials: 1
+
+# Cross-validation settings
+cv_folds: 3
+
+# Models to use for evaluation (reduced set)
+models:
+  random_forest:
+    enabled: true
+    n_estimators: 50
+
+# Primary model for comparison
+primary_model: "random_forest"
+
+# Metrics to report
+metrics:
+  classification: ["accuracy"]
+  regression: ["r2"]

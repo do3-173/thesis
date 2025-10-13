@@ -1,0 +1,74 @@
+# Methods Configuration - Traditional Methods Only
+# Configuration for running only traditional feature selection methods
+
+# @package _global_
+
+# Text-based LLM feature selection (disabled)
+text_based:
+  enabled: false
+  top_k: 5
+  temperature: 0.1
+  max_tokens: 300
+
+# LLM4FS hybrid approach (disabled)
+llm4fs:
+  enabled: false
+  top_k: 5
+  temperature: 0.1
+  max_tokens: 3000
+  sample_size: 200
+
+# MLP weights feature selection (disabled)
+mlp_weights:
+  enabled: false
+  top_k: 5
+  hidden_layer_sizes: [64, 32]
+  max_iter: 500
+  random_state: 42
+
+# MLP permutation feature selection (disabled)
+mlp_permutation:
+  enabled: false
+  top_k: 5
+  hidden_layer_sizes: [64, 32]
+  max_iter: 500
+  n_repeats: 5
+  random_state: 42
+
+# Traditional methods
+traditional:
+  mutual_info:
+    enabled: true
+    top_k: 10
+  
+  random_forest:
+    enabled: true
+    top_k: 10
+    n_estimators: 100
+  
+  univariate:
+    enabled: true
+    top_k: 10
+
+# Baseline classifiers for evaluation
+baseline_classifiers:
+  logistic_regression:
+    enabled: true
+    random_state: 42
+    max_iter: 1000
+  
+  mlp:
+    enabled: true
+    random_state: 42
+    max_iter: 200
+    hidden_layer_sizes: [50]
+  
+  random_forest_classifier:
+    enabled: true
+    random_state: 42
+    n_estimators: 100
+  
+  xgboost:
+    enabled: true
+    random_state: 42
+    n_estimators: 100

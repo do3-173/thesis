@@ -1,0 +1,27 @@
+# Multi-Trial Evaluation Configuration
+# Statistical evaluation with multiple trials
+
+# @package _global_
+
+# Cross-validation settings
+cv_folds: 5
+scoring_metric: "accuracy"
+
+# Multi-trial settings
+n_trials: 5
+random_seeds: [42, 123, 456, 789, 101112]
+
+# Statistical reporting
+report_statistics:
+  mean: true
+  std: true
+  variance: true
+  confidence_interval: false
+
+# Results output
+output:
+  format: "table"
+  decimal_places: 3
+  save_csv: true
+  save_json: true
+  create_summary: true

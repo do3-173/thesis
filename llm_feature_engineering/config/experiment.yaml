@@ -1,0 +1,29 @@
+# Main Experiment Configuration
+# This file defines the complete experimental setup for LLM-based feature engineering
+
+defaults:
+  - data: local_datasets
+  - llm: anthropic
+  - methods: complete_methods
+  - evaluation: standard
+  - benchmark: autogluon_standard
+  - _self_
+
+# Experiment settings
+experiment:
+  name: "llm_feature_engineering_experiment"
+  description: "Comprehensive evaluation of LLM-based feature selection methods"
+  results_dir: "results"
+  random_seed: 42
+  
+  # Experiment phases to run
+  run_feature_selection: true
+  run_autogluon_benchmark: true
+  save_intermediate: false
+
+# Logging configuration
+hydra:
+  run:
+    dir: experiments/${now:%Y-%m-%d_%H-%M-%S}
+  job:
+    chdir: true
