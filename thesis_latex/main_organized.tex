@@ -1,0 +1,105 @@
+% !TeX encoding = UTF-8
+% !TeX program = pdflatex
+% !TeX spellcheck = en_US
+\documentclass[binding=0.6cm]{sapthesis}
+
+% ====================================================================
+% PACKAGES AND CONFIGURATION
+% ====================================================================
+\usepackage{microtype}
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage[numbers]{natbib}
+
+% ====================================================================
+% CUSTOM COMMANDS
+% ====================================================================
+\newcommand{\loris}[1]{\textcolor{blue}{#1}}
+\newcommand{\edo}[1]{\textcolor{red}{#1}}
+
+% Set paragraph spacing without indentation
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1em}
+
+% ====================================================================
+% DOCUMENT METADATA
+% ====================================================================
+\hypersetup{
+    pdftitle={Feature Engineering with Large Language Models for Tabular Data Analysis},
+    pdfauthor={Edo Fejzic}
+}
+
+\title{Feature Engineering with Large Language Models\\for Tabular Data Analysis}
+\author{Edo Fejzic}
+\IDnumber{2113132}
+\course{Master in Data Science}
+\courseorganizer{Facoltà di Ingegneria dell'Informazione, Informatica e Statistica}
+\AcademicYear{2024/2025}
+\advisor{Prof. Aris Anagnostopoulos}
+\coadvisor{Loris Cino}
+\authoremail{fejzic.2113132@studenti.uniroma1.it}
+\copyyear{2025}
+\thesistype{Master thesis}
+
+% ====================================================================
+% DOCUMENT STRUCTURE
+% ====================================================================
+\begin{document}
+
+% ====================================================================
+% FRONTMATTER
+% ====================================================================
+\frontmatter
+\maketitle
+
+\dedication{Dedicated to my family and friends for their unwavering support.}
+
+% Abstract
+\input{frontmatter/abstract}
+
+% Acknowledgments  
+\input{frontmatter/acknowledgments}
+
+% Table of Contents
+\tableofcontents
+
+% ====================================================================
+% MAIN CONTENT
+% ====================================================================
+\mainmatter
+
+% Chapter 1: Introduction
+\input{chapters/introduction}
+
+% Chapter 2: Literature Review
+\input{chapters/literature}
+
+% Chapter 3: Methodology
+\input{chapters/methodology}
+
+% Chapter 4: Experimental Setup
+\input{chapters/experiments}
+
+% Chapter 5: Results and Analysis
+\input{chapters/results}
+
+% Chapter 6: Conclusions and Future Work
+\input{chapters/conclusions}
+
+% ====================================================================
+% BACKMATTER
+% ====================================================================
+\backmatter
+\cleardoublepage
+\phantomsection % Give this command only if hyperref is loaded
+\addcontentsline{toc}{chapter}{\bibname}
+\bibliographystyle{unsrt}
+\bibliography{references}
+
+\end{document}

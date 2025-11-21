@@ -1,0 +1,53 @@
+\section{Taxonomies and Methodological Frameworks}
+\label{sec:taxonomies}
+
+\loris{In this section can help to have a Figure like this}
+
+\edo{Create taxonomic classification figure showing: 1) Data-centric taxonomy: Data-driven vs Text-based methods, 2) Iterative vs Single-shot approaches, 3) LLM roles: Feature Selector vs Feature Generator vs Hybrid. Look for inspiration in: Li et al. Figure 1 and Han et al. workflow diagrams}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.7\textwidth]{figures/taxonomy.png}
+    \caption{Esempio di tassonomia.}
+    \label{fig:taxonomy}
+\end{figure}
+
+\subsection{Data-Centric Categorization}
+
+Li et al. \cite{li2024exploring} propose a fundamental taxonomy that categorizes LLM-based feature selection methods into two distinct paradigms based on the type of information provided to the model:
+
+Data-driven methods operate by providing specific data samples to LLMs, enabling them to perform statistical inference and correlation analysis. In this approach, the LLM receives feature values paired with target variable values, formatted as few-shot examples within the prompt. The model is then expected to infer relationships and assign importance scores based on observed patterns in the provided samples. Formally, given a dataset $d$ with $m$ samples, data-driven methods construct sample pairs $SP_i = \{(n^j_{f_i}, n^j_y)\}$ for feature $f_i$ and target variable $y$, where $j \in \{1, ..., m\}$.
+
+The prompt construction follows the pattern:
+\begin{equation}
+P^{Data}_{f_i} = \text{prompt}(C, SP_i)
+\end{equation}
+where $C$ represents the instruction context and $SP_i$ contains the sample pairs for feature $f_i$.
+
+Text-based methods, in contrast, leverage the extensive semantic knowledge embedded within LLMs by incorporating detailed dataset and feature descriptions into prompts. These approaches construct prompts using dataset descriptions ($des_d$) and feature-specific descriptions ($des_{f_i}$):
+\begin{equation}
+P^{Text}_{f_i} = \text{prompt}(C, des_d, des_{f_i})
+\end{equation}
+
+This methodological distinction proves crucial for understanding the relative strengths and limitations of different approaches, as empirically demonstrated across multiple evaluation studies.
+
+\subsection{Iterative Feature Generation Frameworks}
+
+Han et al. \cite{han2024large} introduce a more sophisticated framework that employs iterative feature generation specifically optimized for few-shot learning scenarios. Their approach addresses the fundamental challenge of limited training data by systematically leveraging LLMs' world knowledge to create meaningful feature representations through multiple generation cycles.
+
+The iterative process operates through four interconnected phases that systematically build upon each other to achieve optimal feature generation outcomes.
+
+The initial phase involves comprehensive context provision, where dataset descriptions and carefully selected representative samples are provided to the LLM to establish robust semantic understanding of the domain and task requirements. This phase is crucial because it sets the foundation for all subsequent feature generation by ensuring that the model has sufficient contextual information to generate meaningful and relevant features. The context provision goes beyond simple data descriptions to include domain-specific knowledge, task objectives, and examples that illustrate the types of patterns and relationships that are important for the specific application.
+
+Subsequently, the framework focuses on intelligent feature generation, where the LLM leverages both its embedded world knowledge and the provided context to generate novel features through sophisticated domain knowledge application and pattern recognition capabilities. During this phase, the model draws upon its extensive training to identify potentially useful transformations, combinations, and derived features that might not be obvious from purely statistical analysis. The generation process is guided by the contextual understanding established in the previous phase, ensuring that generated features are both theoretically sound and practically relevant to the specific domain and task.
+
+The framework then implements rigorous performance evaluation, where generated features undergo systematic validation using downstream classifiers through comprehensive cross-validation protocols. This evaluation phase is essential for determining which generated features actually provide predictive value and should be retained for the final feature set. The evaluation goes beyond simple accuracy metrics to consider factors such as feature stability, interpretability, and potential for overfitting, ensuring that only genuinely useful features are incorporated into the final model.
+
+Finally, the process establishes adaptive iterative refinement, where the entire procedure repeats with updated context that incorporates lessons learned from previous iterations, including performance feedback and insights about which types of features proved most effective. This refinement process allows the system to continuously improve its feature generation capabilities by learning from both successes and failures in previous iterations. The iterative nature ensures that the feature engineering process can adapt to the specific characteristics of each dataset and task, rather than relying on generic feature generation strategies.
+
+\edo{Add example from Han et al. 2024 paper showing iterative feature generation process with specific prompts and generated features}
+% Look for: FeatLLM framework examples with few-shot demonstrations 
+% Include: How task description + examples are incorporated into prompts
+% The paper mentions "by adding example demonstrations to the prompts" - find specific examples
+
+This framework demonstrates particular effectiveness in scenarios with limited training data (4-64 samples), where traditional feature engineering approaches typically struggle due to insufficient statistical power for reliable feature selection.

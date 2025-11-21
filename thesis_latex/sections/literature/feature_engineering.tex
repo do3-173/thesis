@@ -1,0 +1,610 @@
+\section{Feature Engineering}
+\label{sec:traditional_fe}
+\loris{The first section is to introduce the feature engineering for tabular data.}
+
+Feature engineering represents one of the most crucial aspects of the machine learning pipeline, often determining the success or failure of predictive models. As noted by \citet{duboue2020art}, "Good features allow a simple model to beat a complex model," emphasizing the fundamental importance of thoughtful feature design over algorithmic complexity. \citet{guyon2003introduction} provide the seminal review of feature selection techniques that remains the foundation of modern approaches. 
+
+Feature engineering encompasses the entire process of using domain knowledge to create features that improve machine learning algorithm performance \citep{duboue2020art}. This process involves multiple interconnected stages: feature extraction from raw data, feature construction through mathematical transformations, feature selection to identify the most informative variables, and feature scaling to ensure algorithmic compatibility. The quality of features often matters more than the choice of algorithm, with practitioners commonly observing that superior features enable simple linear models to outperform complex ensemble methods \citep{hastie2009elements}.
+
+This section provides a comprehensive overview of traditional feature engineering techniques, establishing the theoretical foundation that underlies both manual and automated approaches. We examine the mathematical foundations, practical implementations, and empirical guidelines that have evolved through decades of machine learning practice.
+
+\subsection{Feature Preprocessing and Normalization}
+
+Feature preprocessing forms the foundation of effective machine learning, addressing issues of scale, distribution, and data quality that can severely impact model performance. The preprocessing stage involves several critical transformations that prepare raw data for algorithmic consumption.
+
+\subsubsection{Normalization and Scaling}
+
+Normalization techniques address the challenge of features with different scales and ranges. Without proper normalization, features with larger numeric ranges can dominate distance-based algorithms, leading to suboptimal performance \citep{duboue2020art,hastie2009elements}.
+
+\textbf{Standardization (Z-score normalization)} transforms features to have zero mean and unit variance:
+\begin{equation}
+x_{\text{std}} = \frac{x - \mu}{\sigma}
+\end{equation}
+where $\mu$ is the feature mean and $\sigma$ is the standard deviation. This transformation is particularly crucial for algorithms like SVMs, logistic regression, and neural networks, with forgetting to normalize being considered one of the most common mistakes in machine learning practice \citep{duboue2020art}. Modern machine learning libraries like scikit-learn \citep{pedregosa2011scikit} provide standardized implementations of these preprocessing techniques.
+
+\textbf{Min-Max scaling} transforms features to a fixed range, typically [0, 1]:
+\begin{equation}
+x_{\text{scaled}} = \frac{x - x_{\min}}{x_{\max} - x_{\min}}
+\end{equation}
+
+\textbf{Unit vector scaling} normalizes feature vectors to have unit length, preserving direction while standardizing magnitude:
+\begin{equation}
+\mathbf{x}_{\text{unit}} = \frac{\mathbf{x}}{||\mathbf{x}||_p}
+\end{equation}
+where $p$ typically represents the L2 norm (Euclidean) or L1 norm (Manhattan distance).
+
+\subsubsection{Advanced Normalization Techniques}
+
+\textbf{Decorrelation} removes linear relationships between features that may result from acquisition artifacts. This is particularly relevant for sensor data where echoes or repetitions can introduce spurious correlations \citep{duboue2020art}.
+
+\textbf{Whitening transformations} combine standardization and decorrelation, transforming data to have unit variance and zero correlation. The ZCA (Zero Component Analysis) whitening preserves the similarity to original data while achieving these properties:
+\begin{equation}
+W_{\text{ZCA}} = ED^{-1/2}E^T = C^{-1/2}
+\end{equation}
+where $C$ is the covariance matrix with eigenvalue decomposition $C = EDE^T$.
+
+\subsubsection{Smoothing and Probability Adjustments}
+
+Smoothing techniques address noise and sparse observations in features. When features appear perturbed by independent errors, smoothing can recover the true underlying signal by averaging over local neighborhoods \citep{duboue2020art}.
+
+For sparse categorical features, \textbf{probability smoothing} reserves probability mass for unseen events. Techniques include:
+\begin{itemize}
+\item \textbf{Laplacian smoothing}: Add one occurrence to all possible feature values
+\item \textbf{Add-$\alpha$ smoothing}: Add a small constant $\alpha$ to all counts
+\item \textbf{Good-Turing smoothing}: Use frequency-of-frequencies to estimate unseen events
+\end{itemize}
+
+\subsection{Feature Creation and Transformation}
+
+Feature creation involves generating new features from existing ones, often revealing relationships that are difficult for algorithms to discover independently. This process requires domain knowledge and understanding of the underlying data relationships.
+
+\subsubsection{Single-Feature Transformations}
+
+Mathematical transformations of individual features can reveal hidden patterns or make relationships more apparent to learning algorithms. Common transformations include:
+
+\textbf{Power transformations}:
+\begin{itemize}
+\item Logarithmic: $\log(x)$ for proportional relationships
+\item Square root: $\sqrt{x}$ for dampening extreme values
+\item Polynomial: $x^n$ for exponential relationships
+\end{itemize}
+
+\textbf{Box-Cox transformation} provides a parametric family of power transformations:
+\begin{equation}
+y = \begin{cases}
+\frac{x^\lambda - 1}{\lambda} & \text{if } \lambda \neq 0 \\
+\log(x) & \text{if } \lambda = 0
+\end{cases}
+\end{equation}
+
+\textbf{Sigmoid transformations} use S-shaped functions like $\frac{1}{1 + e^{-x}}$ to maintain variation in the middle range while compressing extremes.
+
+\subsubsection{Arithmetic Combinations}
+
+Creating features through arithmetic operations can capture domain-specific relationships that individual features cannot express. Examples include:
+
+\begin{itemize}
+\item \textbf{Ratios}: $\frac{x_1}{x_2}$ for relative measurements
+\item \textbf{Differences}: $x_1 - x_2$ for changes or gaps  
+\item \textbf{Products}: $x_1 \times x_2$ for area, volume, or interaction effects
+\item \textbf{Polynomial features}: $x_1^a x_2^b$ for complex relationships
+\end{itemize}
+
+\subsubsection{Categorical Feature Engineering}
+
+Categorical features require specialized transformations to be effectively utilized by machine learning algorithms.
+
+\textbf{One-hot encoding} converts categorical features with $n$ values into $n$ binary indicator features. While this increases dimensionality, it prevents algorithms from imposing false ordinality on categorical data.
+
+\textbf{Target rate encoding} replaces categorical values with their empirical probability of predicting the target class. For category $c$, the encoded value becomes:
+\begin{equation}
+\text{TRE}(c) = \frac{\sum_{i: x_i = c} \mathbb{I}(y_i = 1)}{\sum_{i: x_i = c} 1}
+\end{equation}
+This approach is particularly powerful when categories have different predictive strengths, but requires careful cross-validation to prevent overfitting.
+
+\textbf{Frequency encoding} replaces categories with their occurrence frequency, capturing the informativeness of rare versus common values.
+
+\subsection{Discretization and Binning}
+
+Discretization transforms continuous features into categorical ones, potentially improving model interpretability and reducing parameter complexity. This process involves finding meaningful boundaries in the feature space.
+
+\subsubsection{Unsupervised Discretization}
+
+Unsupervised methods determine bins based solely on feature distribution:
+
+\textbf{Equal-width binning} divides the feature range into $k$ equal intervals. While simple, this method is sensitive to outliers.
+
+\textbf{Equal-frequency binning} creates bins containing approximately equal numbers of observations, adapting to data density variations.
+
+\textbf{Clustering-based discretization} uses algorithms like k-means to identify natural groupings in the feature space, then assigns cluster labels as discrete values.
+
+\subsubsection{Supervised Discretization}
+
+Supervised methods incorporate target information to create more informative bins:
+
+\textbf{Chi-merge} \citep{kerber1992chimerge} iteratively merges adjacent intervals based on chi-square tests of independence with the target variable. The algorithm starts with each observed value as a separate interval and merges adjacent intervals when the chi-square test cannot reject the null hypothesis of independence.
+
+\textbf{MDLP (Minimum Description Length Principle)} \citep{fayyad1993multi} uses information theory to determine optimal cut points:
+\begin{equation}
+H(S) = -\sum_{i=1}^k \frac{|S_i|}{|S|} \log_2 \frac{|S_i|}{|S|}
+\end{equation}
+where $S_i$ represents instances in class $i$. The algorithm recursively splits intervals to minimize description length while maximizing class homogeneity.
+
+\subsection{Text-Based Feature Engineering in Tabular Data}
+\label{sec:text_fe}
+
+Text columns within tabular datasets represent a particularly rich yet challenging source of information for machine learning models. Unlike purely numerical or categorical features, text fields require specialized preprocessing and feature extraction techniques to convert unstructured textual content into meaningful numerical representations. This subsection examines traditional text feature engineering approaches, establishing the foundation for understanding how Large Language Models can revolutionize this domain.
+
+\subsubsection{Traditional Text Feature Engineering}
+
+\textbf{Bag-of-Words (BoW) representations} constitute the fundamental approach to text feature engineering, converting documents into fixed-length vectors based on word occurrence frequencies. For a vocabulary $V$ of size $|V|$, each document $d$ is represented as:
+\begin{equation}
+\mathbf{x}_d = [tf(w_1, d), tf(w_2, d), ..., tf(w_{|V|}, d)]
+\end{equation}
+where $tf(w_i, d)$ represents the frequency of word $w_i$ in document $d$. While simple, BoW representations suffer from high dimensionality and loss of semantic relationships.
+
+\textbf{TF-IDF (Term Frequency-Inverse Document Frequency)} enhances BoW by weighting terms based on their discriminative power across the corpus:
+\begin{equation}
+\text{TF-IDF}(w, d) = tf(w, d) \times \log\left(\frac{N}{df(w)}\right)
+\end{equation}
+where $N$ is the total number of documents and $df(w)$ is the document frequency of word $w$. This weighting scheme reduces the influence of common words while emphasizing rare, potentially informative terms.
+
+\textbf{N-gram features} capture local word order information by considering sequences of $n$ consecutive words as features. Bigrams ($n=2$) and trigrams ($n=3$) can capture simple phrasal patterns, though they dramatically increase feature space dimensionality.
+
+\subsubsection{Advanced Text Representations}
+
+\textbf{Word embeddings} like Word2Vec \citep{mikolov2013efficient} and GloVe \citep{pennington2014glove} provide dense vector representations that capture semantic relationships between words. Document-level representations can be constructed by:
+\begin{itemize}
+\item \textbf{Averaging word embeddings}: Simple but loses word order information
+\item \textbf{Weighted averaging}: Using TF-IDF weights to emphasize important words
+\item \textbf{Doc2Vec}: Learning document-specific embeddings directly \citep{le2014distributed}
+\end{itemize}
+
+\textbf{Topic modeling} approaches like Latent Dirichlet Allocation (LDA) \citep{blei2003latent} discover latent thematic structure in text corpora, representing documents as probability distributions over topics:
+\begin{equation}
+P(w_{d,n} | \alpha, \beta) = \sum_{z=1}^K P(w_{d,n} | z, \beta) P(z | \theta_d)
+\end{equation}
+where $z$ represents topic assignments and $K$ is the number of topics.
+
+\subsubsection{Challenges in Tabular Text Feature Engineering}
+
+Text columns in tabular datasets present unique challenges that distinguish them from traditional document classification tasks:
+
+\textbf{Limited text length}: Unlike full documents, tabular text fields often contain short phrases, product descriptions, or categorical labels with limited context. Traditional document-level techniques may be suboptimal for such sparse textual content.
+
+\textbf{Domain-specific terminology}: Text fields frequently contain specialized vocabulary, abbreviations, or jargon specific to the application domain (medical codes, product specifications, technical descriptions) that standard word embeddings may not capture effectively.
+
+\textbf{Mixed data types}: Text features must be integrated with numerical and categorical features in a coherent feature space, requiring careful consideration of scaling and representation compatibility.
+
+\textbf{Computational constraints}: High-dimensional text representations can dominate the feature space, potentially overwhelming other important tabular features and increasing computational complexity.
+
+\subsubsection{Preprocessing Considerations}
+
+Effective text feature engineering requires careful preprocessing tailored to the specific characteristics of tabular text data:
+
+\textbf{Text normalization} includes lowercasing, punctuation removal, and handling of special characters, though aggressive normalization may lose important domain-specific information.
+
+\textbf{Tokenization strategies} must balance granularity with vocabulary size, considering whether to split on spaces, use subword tokenization, or preserve specific patterns (URLs, product codes, etc.).
+
+\textbf{Stop word removal} requires domain-specific consideration, as standard stop word lists may remove informative terms in specialized contexts.
+
+\textbf{Feature selection for text} becomes critical given the high dimensionality of text representations. Methods include vocabulary pruning based on frequency thresholds, mutual information filtering, or dimensionality reduction techniques like SVD.
+
+This traditional foundation establishes the context for understanding how Large Language Models can address many of these limitations through their semantic understanding, contextual awareness, and ability to generate meaningful features from limited textual content.
+
+\edo{Add text feature engineering comparison figure. Should show: Traditional approaches (BoW, TF-IDF, Word2Vec) vs LLM approaches for text columns in tabular data. Include example transformations like product descriptions -> semantic features. Look for: Text processing pipeline diagrams showing evolution from classical to modern approaches}
+
+\subsection{Feature Selection Methods}
+
+Feature selection addresses the curse of dimensionality by identifying the most relevant features for prediction, reducing computational cost and improving model interpretability while potentially enhancing generalization performance. The comprehensive survey by \citet{guyon2003introduction} established the taxonomy of filter, wrapper, and embedded methods that remains the standard framework today.
+
+\subsubsection{Filter Methods}
+
+Filter methods evaluate features independently of the learning algorithm, using statistical measures to assess feature relevance \citep{guyon2003introduction}.
+
+\textbf{Univariate statistical tests} include:
+\begin{itemize}
+\item \textbf{Chi-square test}: For categorical features and categorical targets
+\item \textbf{Mutual information}: Measures information shared between feature and target
+\item \textbf{ANOVA F-test}: For categorical features and continuous targets  
+\item \textbf{Pearson correlation}: For continuous features and continuous targets
+\end{itemize}
+
+\textbf{Mutual information} quantifies the information gain about the target when knowing the feature value:
+\begin{equation}
+I(X;Y) = \sum_{x,y} P(x,y) \log \frac{P(x,y)}{P(x)P(y)}
+\end{equation}
+
+\subsubsection{Wrapper Methods}
+
+Wrapper methods evaluate feature subsets using the actual learning algorithm, providing more accurate but computationally expensive selection.
+
+\textbf{Forward selection} starts with an empty feature set and iteratively adds features that most improve performance.
+
+\textbf{Backward elimination} (Recursive Feature Elimination) starts with all features and iteratively removes the least important ones.
+
+\textbf{Bidirectional search} combines forward and backward approaches, allowing both addition and removal of features at each step.
+
+\subsubsection{Embedded Methods}
+
+Embedded methods perform feature selection as part of the model training process, integrating selection with learning.
+
+\textbf{LASSO regression} \citep{tibshirani1996regression} adds an L1 penalty that drives less important feature coefficients to zero:
+\begin{equation}
+\min_{\boldsymbol{\beta}} \frac{1}{2n}||\mathbf{y} - \mathbf{X}\boldsymbol{\beta}||_2^2 + \lambda||\boldsymbol{\beta}||_1
+\end{equation}
+The L1 penalty creates sparse solutions by setting coefficients of irrelevant features exactly to zero, providing automatic feature selection.
+
+\textbf{Random Forest feature importance} \citep{breiman1984classification} measures the decrease in node impurity weighted by the probability of reaching that node for each feature. This provides a natural measure of feature importance based on how much each feature contributes to decreasing node impurity across all trees.
+
+\textbf{Elastic Net} \citep{zou2005regularization} combines L1 and L2 penalties, balancing feature selection with grouped variable selection:
+\begin{equation}
+\min_{\boldsymbol{\beta}} \frac{1}{2n}||\mathbf{y} - \mathbf{X}\boldsymbol{\beta}||_2^2 + \lambda_1||\boldsymbol{\beta}||_1 + \lambda_2||\boldsymbol{\beta}||_2^2
+\end{equation}
+
+\subsection{Dimensionality Reduction}
+
+Dimensionality reduction techniques transform high-dimensional feature spaces into lower-dimensional representations while preserving important information content.
+
+\subsubsection{Linear Methods}
+
+\textbf{Principal Component Analysis (PCA)} \citep{hastie2009elements} finds orthogonal directions of maximum variance:
+\begin{equation}
+\mathbf{Y} = \mathbf{XW}
+\end{equation}
+where $\mathbf{W}$ contains eigenvectors of the covariance matrix $\mathbf{X}^T\mathbf{X}$. PCA provides optimal linear dimensionality reduction in terms of preserving variance, but does not consider class labels.
+
+\textbf{Linear Discriminant Analysis (LDA)} \citep{hastie2009elements} maximizes class separability while minimizing within-class scatter:
+\begin{equation}
+\mathbf{W}^* = \arg\max_{\mathbf{W}} \frac{|\mathbf{W}^T\mathbf{S}_B\mathbf{W}|}{|\mathbf{W}^T\mathbf{S}_W\mathbf{W}|}
+\end{equation}
+where $\mathbf{S}_B$ and $\mathbf{S}_W$ are between-class and within-class scatter matrices. Unlike PCA, LDA uses supervised information to find projections that maximize class discrimination.
+
+\textbf{Independent Component Analysis (ICA)} finds statistically independent components, particularly useful for signal separation tasks.
+
+\subsubsection{Nonlinear Methods}
+
+\textbf{Kernel PCA} applies PCA in a higher-dimensional feature space defined by a kernel function:
+\begin{equation}
+\phi(\mathbf{x}) : \mathbb{R}^d \rightarrow \mathbb{R}^D
+\end{equation}
+
+\textbf{Manifold learning techniques} like t-SNE, UMAP, and Isomap assume data lies on a lower-dimensional manifold embedded in the high-dimensional space.
+
+\subsection{AutoML and Feature Engineering}
+
+The relationship between traditional feature engineering and AutoML represents an evolution rather than a replacement of manual techniques. Modern AutoML systems incorporate many traditional methods as building blocks in automated pipelines.
+
+\subsubsection{Automated Feature Engineering}
+
+AutoML systems typically implement feature engineering through:
+
+\textbf{Feature transformation libraries} \citep{pedregosa2011scikit} that systematically apply mathematical transformations, generating candidate features for evaluation. Modern frameworks provide extensive preprocessing and feature transformation capabilities.
+
+\textbf{Feature construction algorithms} like Featuretools \citep{brink2017real} that automatically generate features through deep feature synthesis, creating new features by applying operations across relational databases.
+
+\textbf{Meta-learning approaches} that learn which feature engineering techniques work best for different types of datasets, applying learned knowledge to new problems based on dataset characteristics and problem type.
+
+\subsubsection{Hybrid Approaches}
+
+Effective feature engineering often combines automated and manual approaches:
+
+\begin{itemize}
+\item \textbf{Domain-guided automation}: Using domain knowledge to constrain the search space for automated feature generation
+\item \textbf{Interactive feature engineering}: Allowing human experts to guide automated systems through iterative refinement
+\item \textbf{Ensemble feature engineering}: Combining multiple feature engineering approaches and selecting the best combinations through cross-validation
+\end{itemize}
+
+\subsection{Advanced Feature Engineering Techniques}
+\label{subsec:advanced_fe}
+
+Modern feature engineering has evolved beyond basic transformations to incorporate sophisticated mathematical and statistical techniques that capture complex patterns in data.
+
+\subsubsection{Polynomial and Interaction Features}
+
+Polynomial feature expansion creates nonlinear relationships by systematically generating higher-order terms. For features $x_1, x_2, \ldots, x_d$, polynomial expansion of degree $n$ generates all possible products:
+
+\begin{equation}
+\Phi_n(\mathbf{x}) = \{x_i^{a_1} x_j^{a_2} \cdots x_k^{a_d} : a_1 + a_2 + \cdots + a_d \leq n\}
+\end{equation}
+
+\textbf{Interaction features} specifically capture relationships between pairs or groups of features:
+\begin{equation}
+f_{ij} = x_i \times x_j, \quad f_{ijk} = x_i \times x_j \times x_k
+\end{equation}
+
+\edo{Add figure showing feature engineering workflow/pipeline. Should show: Raw Data -> Feature Engineering Steps -> ML-Ready Features. Good sources: Look for workflow diagrams in feature engineering papers}
+
+These techniques are particularly valuable in scenarios where the target variable depends on complex combinations of input features, common in domains like marketing analytics and biomedical research \citep{hastie2009elements}.
+
+\subsubsection{Binning and Discretization}
+
+Discretization transforms continuous variables into categorical ones, often improving model interpretability and handling nonlinear relationships effectively.
+
+\textbf{Equal-width binning} divides the feature range into intervals of equal size:
+\begin{equation}
+\text{bin}_i = \left[\text{min} + i \cdot \frac{\text{max} - \text{min}}{k}, \text{min} + (i+1) \cdot \frac{\text{max} - \text{min}}{k}\right)
+\end{equation}
+
+\textbf{Equal-frequency binning} ensures each bin contains approximately the same number of observations, adapting to the data distribution.
+
+\textbf{ChiMerge} \citep{kerber1992chimerge} uses statistical significance testing to determine optimal bin boundaries by iteratively merging adjacent bins with the lowest chi-square statistic.
+
+\textbf{Multi-interval discretization} \citep{fayyad1993multi} employs entropy-based criteria to identify cut points that maximize information gain, particularly effective for classification tasks.
+
+\edo{Add discretization/binning example figure. Should show: Continuous variable -> Bins/Categories with thresholds. Look for: Equal-width vs equal-frequency binning comparison}
+
+\subsubsection{Feature Engineering for Time Series}
+
+Time series feature engineering creates representations that capture temporal patterns, trends, and seasonality:
+
+\textbf{Lag features} incorporate historical values:
+\begin{equation}
+x_t^{(k)} = x_{t-k}
+\end{equation}
+
+\textbf{Rolling window statistics} summarize recent behavior:
+\begin{align}
+\text{Mean}_w(t) &= \frac{1}{w} \sum_{i=0}^{w-1} x_{t-i} \\
+\text{Std}_w(t) &= \sqrt{\frac{1}{w} \sum_{i=0}^{w-1} (x_{t-i} - \text{Mean}_w(t))^2}
+\end{align}
+
+\textbf{Fourier features} extract frequency domain information:
+\begin{equation}
+f_k = \sum_{t=0}^{n-1} x_t e^{-2\pi i kt/n}
+\end{equation}
+
+\subsubsection{Text Feature Engineering}
+
+Traditional text feature engineering transforms unstructured text into numerical representations suitable for machine learning algorithms:
+
+\textbf{Bag-of-Words (BoW)} represents documents as vectors of word counts:
+\begin{equation}
+\mathbf{d} = [c_1, c_2, \ldots, c_V]
+\end{equation}
+where $c_i$ is the count of word $i$ in the vocabulary $V$.
+
+\textbf{TF-IDF (Term Frequency-Inverse Document Frequency)} weights words by their importance:
+\begin{equation}
+\text{TF-IDF}(t,d) = \text{TF}(t,d) \times \log\left(\frac{N}{\text{DF}(t)}\right)
+\end{equation}
+
+\textbf{N-grams} capture local word order by considering sequences of $n$ consecutive words, providing context that single words cannot convey.
+
+\subsection{Feature Selection Methodologies}
+\label{subsec:feature_selection}
+
+Feature selection reduces dimensionality by identifying the most informative features while removing redundant or irrelevant ones. This process improves computational efficiency, reduces overfitting, and enhances model interpretability \citep{guyon2003introduction}.
+
+\subsubsection{Filter Methods}
+
+Filter methods evaluate features independently of the learning algorithm using statistical measures:
+
+\textbf{Univariate statistical tests} assess individual feature relevance:
+\begin{itemize}
+\item \textbf{Chi-square test} for categorical features: $\chi^2 = \sum \frac{(O_i - E_i)^2}{E_i}$
+\item \textbf{F-test} for continuous features: $F = \frac{\text{MSB}}{\text{MSW}}$
+\item \textbf{Mutual information} measures dependency: $I(X,Y) = \sum_{x,y} p(x,y) \log\frac{p(x,y)}{p(x)p(y)}$
+\end{itemize}
+
+\textbf{Correlation-based methods} identify redundant features through pairwise correlation analysis, removing highly correlated feature pairs that provide similar information \citep{guyon2003introduction}.
+
+\edo{Add feature selection taxonomy/classification diagram. Should show: Filter vs Wrapper vs Embedded methods with examples. Look for: Hierarchical tree showing different feature selection approaches}
+
+\subsubsection{Wrapper Methods}
+
+Wrapper methods evaluate feature subsets using the target algorithm's performance:
+
+\textbf{Forward selection} starts with an empty set and iteratively adds features that most improve performance.
+
+\textbf{Backward elimination} begins with all features and removes those that least impact performance.
+
+\textbf{Recursive Feature Elimination (RFE)} uses model coefficients or feature importance to iteratively remove the least important features \citep{guyon2003introduction}.
+
+\subsubsection{Embedded Methods}
+
+Embedded methods incorporate feature selection within the learning algorithm:
+
+\textbf{Regularization techniques} automatically perform feature selection through penalty terms:
+\begin{align}
+\text{Ridge (L2):} \quad J(\boldsymbol{\theta}) &= \text{MSE} + \alpha \sum_{j=1}^p \theta_j^2 \\
+\text{Lasso (L1):} \quad J(\boldsymbol{\theta}) &= \text{MSE} + \alpha \sum_{j=1}^p |\theta_j| \\
+\text{Elastic Net:} \quad J(\boldsymbol{\theta}) &= \text{MSE} + \alpha_1 \sum_{j=1}^p |\theta_j| + \alpha_2 \sum_{j=1}^p \theta_j^2
+\end{align}
+
+Lasso regression \citep{tibshirani1996regression} performs automatic feature selection by driving coefficients to zero, while Ridge regression \citep{breiman1984classification} shrinks coefficients without eliminating features. Elastic Net \citep{zou2005regularization} combines both approaches, particularly effective when dealing with groups of correlated features \citep{hastie2009elements}.
+
+\textbf{Tree-based methods} naturally provide feature importance through split criteria, enabling selection of the most discriminative features based on their contribution to reducing impurity at tree nodes \citep{pedregosa2011scikit}.
+
+\subsubsection{Dimensionality Reduction Techniques}
+
+Dimensionality reduction methods transform high-dimensional feature spaces into lower-dimensional representations while preserving essential information. These techniques serve dual purposes: computational efficiency and noise reduction.
+
+\textbf{Principal Component Analysis (PCA)} identifies orthogonal directions of maximum variance in the feature space \citep{hastie2009elements}:
+\begin{equation}
+\mathbf{X}_{\text{reduced}} = \mathbf{X} \mathbf{W}_k
+\end{equation}
+where $\mathbf{W}_k$ contains the first $k$ principal components (eigenvectors of the covariance matrix). PCA is particularly effective for continuous features with linear relationships.
+
+\textbf{Linear Discriminant Analysis (LDA)} maximizes class separability by finding projections that maximize between-class variance relative to within-class variance:
+\begin{equation}
+\mathbf{w}^* = \arg\max_{\mathbf{w}} \frac{\mathbf{w}^T \mathbf{S}_B \mathbf{w}}{\mathbf{w}^T \mathbf{S}_W \mathbf{w}}
+\end{equation}
+where $\mathbf{S}_B$ and $\mathbf{S}_W$ represent between-class and within-class scatter matrices, respectively.
+
+\textbf{Non-linear dimensionality reduction} techniques handle complex feature relationships:
+\begin{itemize}
+\item \textbf{t-SNE}: Preserves local neighborhood structure, excellent for visualization
+\item \textbf{UMAP}: Maintains both local and global structure more effectively than t-SNE
+\item \textbf{Kernel PCA}: Extends PCA to non-linear relationships using kernel methods
+\item \textbf{Autoencoders}: Neural network-based compression learning compressed representations
+\end{itemize}
+
+\textbf{Feature subset selection vs. dimensionality reduction}: While feature selection preserves original features (maintaining interpretability), dimensionality reduction creates new composite features that may be more informative but less interpretable. The choice depends on application requirements for interpretability versus performance.
+
+\subsection{Evaluation and Validation of Feature Engineering}
+
+Proper evaluation of feature engineering requires careful consideration of both statistical performance and practical constraints \citep{brink2017real}.
+
+\subsubsection{Cross-Validation Strategies}
+
+Feature engineering evaluation must account for potential data leakage and overfitting:
+
+\textbf{Nested cross-validation} provides unbiased performance estimates by separating feature engineering from model evaluation. The outer loop estimates generalization performance while the inner loop selects optimal features \citep{varma2006bias}.
+
+\textbf{Time-aware validation} for temporal data ensures features are constructed using only historical information available at prediction time, preventing look-ahead bias \citep{hyndman2018forecasting}.
+
+\subsubsection{Performance Metrics}
+
+Feature engineering effectiveness is measured through multiple dimensions:
+
+\begin{itemize}
+\item \textbf{Predictive performance}: Standard metrics (accuracy, AUC, RMSE) on validation sets
+\item \textbf{Stability}: Feature importance consistency across different data splits \citep{nogueira2018stability}
+\item \textbf{Computational efficiency}: Feature construction and prediction time
+\item \textbf{Interpretability}: Ability to explain model decisions using engineered features
+\end{itemize}
+
+\subsection{Domain-Specific Feature Engineering}
+
+Different domains require specialized feature engineering approaches tailored to their unique characteristics and constraints.
+
+\subsubsection{Healthcare and Biomedical Data}
+
+Medical data presents unique challenges including missing values, temporal relationships, and regulatory requirements:
+
+\textbf{Temporal aggregation} creates summary statistics over clinically relevant time windows (24-hour summaries for ICU monitoring, monthly averages for chronic disease management).
+
+\textbf{Medical concept extraction} transforms free-text clinical notes into structured features using medical ontologies like UMLS and ICD codes \citep{friedman2013natural}.
+
+\textbf{Physiological signal processing} extracts features from continuous monitoring data:
+\begin{itemize}
+\item ECG: Heart rate variability metrics, QRS complex characteristics
+\item EEG: Frequency domain features, entropy measures, connectivity patterns
+\item Blood pressure: Variability indices, circadian patterns
+\end{itemize}
+
+\subsubsection{Financial and Risk Analytics}
+
+Financial feature engineering focuses on risk assessment and market dynamics:
+
+\textbf{Risk indicators} quantify various aspects of financial risk:
+\begin{align}
+\text{Debt-to-Income Ratio} &= \frac{\text{Total Monthly Debt}}{\text{Monthly Income}} \\
+\text{Credit Utilization} &= \frac{\text{Current Balance}}{\text{Credit Limit}} \\
+\text{Payment History Score} &= \frac{\text{On-time Payments}}{\text{Total Payments}}
+\end{align}
+
+\textbf{Market microstructure features} capture trading patterns and liquidity dynamics through bid-ask spreads, order flow imbalance, and volume-weighted average prices.
+
+\textbf{Behavioral patterns} identify spending patterns, transaction frequency, and seasonal variations that indicate financial stability or risk \citep{khandani2010consumer}.
+
+\subsubsection{Computer Vision Feature Engineering}
+
+Traditional computer vision relies heavily on hand-crafted features that capture visual patterns:
+
+\textbf{Texture features} quantify surface characteristics:
+\begin{itemize}
+\item Gray-Level Co-occurrence Matrix (GLCM) features: contrast, homogeneity, entropy
+\item Local Binary Patterns (LBP) for rotation-invariant texture description
+\item Gabor filters for multi-scale and multi-orientation analysis
+\end{itemize}
+
+\textbf{Shape descriptors} characterize object geometry:
+\begin{itemize}
+\item Hu moments for translation, scale, and rotation invariance
+\item Fourier descriptors for boundary shape analysis
+\item Geometric features: area, perimeter, compactness, aspect ratio
+\end{itemize}
+
+\textbf{Edge and corner detection} identifies structural elements through gradient-based operators (Sobel, Canny) and interest point detectors (Harris corners, SIFT features).
+
+\subsection{Challenges and Limitations}
+
+Despite its importance, traditional feature engineering faces several fundamental challenges that motivate automated approaches \citep{kanter2015deep}.
+
+\subsubsection{Scalability Issues}
+
+\textbf{Computational complexity}: Manual feature engineering becomes prohibitively expensive as dataset size and dimensionality increase. The combinatorial explosion of possible feature interactions makes exhaustive exploration impossible.
+
+\textbf{Domain expertise requirements}: Effective feature engineering requires deep understanding of both the problem domain and machine learning principles, creating a bottleneck in the data science pipeline.
+
+\textbf{Maintainability concerns}: Hand-crafted feature pipelines become difficult to maintain, debug, and adapt as data distributions change over time.
+
+\subsubsection{Generalization Problems}
+
+\textbf{Domain specificity}: Features engineered for one domain or dataset often fail to transfer to related problems, requiring extensive re-engineering efforts.
+
+\textbf{Data drift sensitivity}: Manually designed features may not adapt well to changing data distributions, requiring continuous monitoring and updating.
+
+\textbf{Optimization myopia}: Human engineers may focus on locally optimal solutions that miss globally superior feature combinations discoverable only through systematic exploration.
+
+\subsection{Automated Machine Learning (AutoML) and Feature Engineering}
+\label{sec:automl_fe}
+
+The recognition that feature engineering is both tedious and time-consuming has driven the development of automated approaches that can systematically explore feature transformations without requiring extensive human expertise. Automated Machine Learning (AutoML) frameworks have emerged to address this challenge by incorporating feature engineering as a core component of end-to-end machine learning pipelines \citep{feurer2015efficient}.
+
+\subsubsection{AutoML Framework Architectures}
+
+Modern AutoML systems integrate feature engineering within broader optimization frameworks that simultaneously consider data preprocessing, feature transformation, model selection, and hyperparameter tuning. This holistic approach recognizes that optimal feature engineering decisions depend heavily on the downstream modeling choices.
+
+\textbf{TPOT (Tree-based Pipeline Optimization Tool)} \citep{olson2016tpot} employs genetic programming to evolve entire machine learning pipelines, including feature engineering steps. The system represents pipelines as tree structures where nodes correspond to preprocessing operations, feature transformations, and learning algorithms. The evolutionary process discovers novel combinations of operations that might not be considered by human practitioners.
+
+\textbf{Auto-sklearn} \citep{feurer2015efficient} extends the scikit-learn ecosystem with Bayesian optimization for automated pipeline construction. The system maintains a library of preprocessing techniques including feature scaling, dimensionality reduction, and categorical encoding, automatically selecting appropriate combinations based on dataset characteristics.
+
+\textbf{H2O AutoML} provides enterprise-scale automated feature engineering through its automatic feature generation capabilities, including interaction term creation, target encoding for categorical variables, and time-series feature extraction for temporal datasets.
+
+\subsubsection{Automated Feature Generation Techniques}
+
+AutoML systems employ various strategies for automated feature generation that systematically explore transformation spaces:
+
+\textbf{Mathematical transformation libraries} apply systematic combinations of operations:
+\begin{itemize}
+\item Arithmetic operations: sums, differences, products, ratios between feature pairs
+\item Mathematical functions: logarithms, exponentials, trigonometric transformations
+\item Statistical aggregations: means, medians, standard deviations over feature groups
+\end{itemize}
+
+\textbf{Deep Feature Synthesis (DFS)} \citep{kanter2015deep} provides a principled approach to automatic feature generation through relational datasets. DFS recursively applies primitive operations (aggregations and transformations) across related tables to create complex, meaningful features that capture relationships across multiple data sources.
+
+\textbf{Featuretools} implements DFS methodology, enabling automatic feature engineering from relational data structures. The framework can generate thousands of candidate features by systematically combining primitive operations across entity relationships.
+
+\subsubsection{AutoML Limitations and Challenges}
+
+Despite significant advances, current AutoML approaches face several limitations that motivate the exploration of LLM-based alternatives:
+
+\textbf{Computational constraints}: Exhaustive exploration of feature transformation spaces becomes computationally prohibitive as dataset complexity increases. Current systems rely on heuristics and sampling strategies that may miss optimal solutions.
+
+\textbf{Semantic blindness}: Traditional AutoML approaches lack understanding of feature semantics, treating all numerical features equivalently regardless of their real-world meaning. This limitation becomes particularly pronounced for text features, categorical variables with semantic structure, or domain-specific data types.
+
+\textbf{Limited domain knowledge integration}: While AutoML systems can access statistical patterns in data, they struggle to incorporate domain expertise, regulatory constraints, or business rules that human experts naturally consider during feature engineering.
+
+\textbf{Interpretability challenges}: Automatically generated features, while potentially effective for prediction, may lack interpretability required in regulated industries or high-stakes applications where model explanations are mandatory.
+
+\subsection{Integration with Modern Machine Learning}
+
+Contemporary machine learning workflows increasingly integrate automated feature engineering with traditional approaches to achieve optimal performance \citep{feurer2015efficient}.
+
+\subsubsection{AutoML Integration}
+
+Automated Machine Learning (AutoML) frameworks incorporate feature engineering as a key component of the optimization pipeline:
+
+\textbf{TPOT} \citep{olson2016tpot} uses genetic programming to evolve feature preprocessing pipelines alongside model selection.
+
+\textbf{Auto-sklearn} \citep{feurer2015efficient} includes feature engineering in its Bayesian optimization framework, automatically selecting preprocessing techniques.
+
+\textbf{H2O AutoML} provides automated feature engineering capabilities including target encoding, interaction detection, and dimensionality reduction.
+
+\subsubsection{Deep Learning Complementarity}
+
+While deep learning can automatically learn features, combining it with traditional feature engineering often improves performance:
+
+\textbf{Hybrid architectures} use engineered features alongside raw inputs in deep neural networks, particularly effective in tabular data scenarios where domain knowledge provides valuable insights not easily discoverable through pure end-to-end learning.
+
+\textbf{Regularization through engineering}: Well-designed features can act as inductive biases that guide neural network training toward more generalizable solutions \citep{bengio2013representation}.
+
+\edo{Add real-world feature engineering pipeline figure. Should show: Domain Knowledge + Automated FE -> Final Features. Look for: End-to-end ML pipeline with FE component highlighted}
+
+This comprehensive overview of feature engineering establishes the foundation for understanding both its critical role in machine learning and the motivation for automated approaches that can overcome its inherent limitations while preserving its benefits through systematic, scalable methodologies.
+
+The integration of traditional feature engineering principles with automated approaches represents the current frontier, where domain expertise guides algorithmic efficiency to create more effective and interpretable machine learning solutions.

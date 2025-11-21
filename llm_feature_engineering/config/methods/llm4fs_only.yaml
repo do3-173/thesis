@@ -1,0 +1,72 @@
+# LLM4FS Only Method Configuration
+# Implements the hybrid strategy from the LLM4FS paper
+# @package _global_
+
+# Text-based LLM feature selection (disabled for LLM4FS)
+text_based:
+  enabled: false
+
+# LLM4FS hybrid approach (ENABLED - main method)
+llm4fs:
+  enabled: true
+  sample_size: 200  # Send ~200 samples to LLM as per paper
+  temperature: 0.1  # Low temperature for stable outputs
+  max_tokens: 4000  # Enough for detailed JSON responses
+  top_k: 16  # Select all features initially (paper tests different proportions)
+  
+  # Traditional methods that LLM will apply
+  traditional_methods:
+    - "random_forest"
+    - "forward_sequential"
+    - "backward_sequential"
+    - "rfe"  # Recursive Feature Elimination
+    - "mrmr"  # Minimum Redundancy Maximum Relevance
+    - "mutual_information"
+  
+  # Feature selection strategy
+  top_k_percent: 0.3  # Select top 30% of features as per paper experiments
+  aggregation: "mean"  # Aggregate scores from multiple methods
+
+# MLP-based methods (disabled)
+mlp_weights:
+  enabled: false
+
+mlp_permutation:
+  enabled: false
+
+# Traditional baseline methods (disabled - only LLM4FS)
+traditional:
+  mutual_info:
+    enabled: false
+  
+  random_forest:
+    enabled: false
+  
+  lasso:
+    enabled: false
+  
+  univariate:
+    enabled: false
+  
+  sequential:
+    enabled: false
+
+# Downstream classifiers for evaluation
+# Paper uses L2-regularized logistic regression with grid search + 5-fold CV
+baseline_classifiers:
+  logistic_regression_l2:
+    enabled: true
+    random_state: 42
+    max_iter: 1000
+    solver: "lbfgs"
+    penalty: "l2"
+    # Grid search parameters
+    C_values: [0.001, 0.01, 0.1, 1, 10, 100]
+    cv_folds: 5
+  
+  # Disable other classifiers for pure LLM4FS reproduction
+  mlp:
+    enabled: false
+  
+  random_forest_classifier:
+    enabled: false

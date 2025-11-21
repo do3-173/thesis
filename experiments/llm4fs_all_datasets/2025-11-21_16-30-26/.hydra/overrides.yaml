@@ -1,0 +1,7 @@
+- data=talent_datasets
+- methods=llm4fs_only
+- evaluation=fast
+- llm=huggingface
+- benchmark=disabled
+- data.datasets=[credit-g]
+- evaluation.n_trials=1

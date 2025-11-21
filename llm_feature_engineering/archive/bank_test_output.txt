@@ -1,0 +1,107 @@
+TALENT library loaded successfully from /home/edo/Sapienza/Thesis/thesis/TALENT
+================================================================================
+LLM4FS Simple Test
+Dataset: bank
+Provider: anthropic
+Model: default
+================================================================================
+
+Loading dataset: bank
+Dataset shape: X_train=(36168, 16), X_test=(9043, 16)
+Features: ['num_0', 'num_1', 'num_2', 'num_3', 'num_4', 'num_5', 'num_6', 'cat_0', 'cat_1', 'cat_2', 'cat_3', 'cat_4', 'cat_5', 'cat_6', 'cat_7', 'cat_8']
+Task: binclass
+
+Initializing anthropic LLM interface...
+Anthropic API connection successful
+Model: claude-3-haiku-20240307
+Response: Connection successful...
+
+================================================================================
+Running LLM4FS Hybrid Feature Selection
+================================================================================
+Applying LLM4FS hybrid feature selection...
+Dataset shape: (36168, 16)
+Sending request to LLM...
+Successfully extracted 17 features
+
+================================================================================
+Feature Selection Results
+================================================================================
+
+Top 10 features:
+ 1. num_3                - Score: 0.9500
+ 2. num_1                - Score: 0.9000
+ 3. num_4                - Score: 0.8800
+ 4. cat_7                - Score: 0.8500
+ 5. num_0                - Score: 0.8500
+ 6. num_2                - Score: 0.8200
+ 7. cat_3                - Score: 0.8000
+ 8. num_5                - Score: 0.7800
+ 9. cat_8                - Score: 0.7500
+10. num_6                - Score: 0.7200
+
+================================================================================
+Evaluation at Different Feature Proportions
+================================================================================
+
+Top 10% features (1 features):
+  Best C: 0.001
+  CV AUROC: 0.8074
+  Test AUROC: 0.7596
+
+Top 20% features (3 features):
+  Best C: 0.001
+  CV AUROC: 0.8193
+  Test AUROC: 0.7838
+
+Top 30% features (5 features):
+  Best C: 0.001
+  CV AUROC: 0.8195
+  Test AUROC: 0.7820
+
+Top 40% features (6 features):
+  Best C: 0.001
+  CV AUROC: 0.8199
+  Test AUROC: 0.7823
+
+Top 50% features (8 features):
+  Best C: 0.001
+  CV AUROC: 0.8299
+  Test AUROC: 0.7868
+
+Top 60% features (10 features):
+  Best C: 0.001
+  CV AUROC: 0.8356
+  Test AUROC: 0.7944
+
+Top 70% features (11 features):
+  Best C: 0.001
+  CV AUROC: 0.8369
+  Test AUROC: 0.7964
+
+Top 80% features (13 features):
+  Best C: 0.001
+  CV AUROC: 0.8435
+  Test AUROC: 0.8053
+
+Top 90% features (15 features):
+  Best C: 0.001
+  CV AUROC: 0.8646
+  Test AUROC: 0.8345
+
+Top 100% features (17 features):
+Traceback (most recent call last):
+  File "/home/edo/Sapienza/Thesis/thesis/llm_feature_engineering/run_llm4fs_simple.py", line 339, in <module>
+    main()
+  File "/home/edo/Sapienza/Thesis/thesis/llm_feature_engineering/run_llm4fs_simple.py", line 335, in main
+    run_llm4fs_test(args.dataset, args.provider, args.model)
+  File "/home/edo/Sapienza/Thesis/thesis/llm_feature_engineering/run_llm4fs_simple.py", line 280, in run_llm4fs_test
+    auroc = evaluate_features(X_train, X_test, y_train, y_test, top_features)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/edo/Sapienza/Thesis/thesis/llm_feature_engineering/run_llm4fs_simple.py", line 160, in evaluate_features
+    categorical_cols = [col for col in X_train_selected.columns if X_train_selected[col].dtype == 'object']
+                                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/edo/Sapienza/Thesis/thesis/venv/lib/python3.12/site-packages/pandas/core/generic.py", line 6321, in __getattr__
+    return object.__getattribute__(self, name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'DataFrame' object has no attribute 'dtype'. Did you mean: 'dtypes'?

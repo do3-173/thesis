@@ -1,0 +1,28 @@
+# LLM4FS Bank Dataset Only Test
+# Quick test on Bank dataset before running all 4 datasets
+
+defaults:
+  - /data: talent_datasets
+  - /llm: anthropic
+  - /methods: llm4fs_only
+  - /evaluation: llm4fs_evaluation
+  - /benchmark: disabled
+
+# Override dataset selection to only Bank
+data:
+  source: "talent"
+  datasets:
+    - "bank"
+  test_size: 0.2
+  random_state: 42
+
+# Experiment metadata
+experiment:
+  name: "llm4fs_bank_test"
+  description: "Testing LLM4FS on Bank dataset only"
+  random_seed: 42
+  output_dir: "experiments/llm4fs_bank_test"
+
+# Single trial for quick testing
+evaluation:
+  n_trials: 1

@@ -110,6 +110,13 @@ class ExperimentRunner:
                 llm_interface=self.llm_interface
             )
         
+        if hasattr(self.config.methods, 'caafe') and self.config.methods.caafe.enabled and self.llm_interface:
+            selectors['caafe'] = create_feature_selector(
+                'caafe',
+                llm_interface=self.llm_interface,
+                **OmegaConf.to_container(self.config.methods.caafe, resolve=True)
+            )
+        
         # Traditional methods
         if self.config.methods.traditional.mutual_info.enabled:
             selectors['mutual_info'] = create_feature_selector(
@@ -192,7 +199,7 @@ class ExperimentRunner:
                     start_time = time.time()
                     
                     # Run feature selection
-                    if method_name in ['text_based', 'llm4fs']:
+                    if method_name in ['text_based', 'llm4fs', 'caafe']:
                         # LLM-based methods need dataset info
                         features = selector.select_features(
                             ml_data['X_train'], 

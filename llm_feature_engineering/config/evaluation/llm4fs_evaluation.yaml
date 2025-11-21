@@ -1,0 +1,45 @@
+# LLM4FS Evaluation Configuration
+# Matches paper's evaluation protocol
+
+# Metric: AUROC (Area Under Receiver Operating Characteristic)
+primary_metric: "auroc"
+
+# Additional metrics to track
+metrics:
+  - "auroc"
+  - "accuracy"
+  - "f1"
+  - "precision"
+  - "recall"
+
+# Feature proportion sweep (10% to 100% in ~10% increments)
+# This matches Figure 7 from the paper
+feature_proportions:
+  - 0.1
+  - 0.2
+  - 0.3
+  - 0.4
+  - 0.5
+  - 0.6
+  - 0.7
+  - 0.8
+  - 0.9
+  - 1.0
+
+# Cross-validation settings
+cross_validation:
+  enabled: true
+  n_splits: 5  # 5-fold CV as per paper
+  shuffle: true
+  random_state: 42
+
+# Multiple trials for statistical significance
+n_trials: 1  # Start with 1 for testing, increase to 5 for full experiments
+
+# Results output
+save_detailed_results: true
+save_feature_rankings: true
+save_plots: true
+
+# Comparison baseline
+compare_with_random: true  # Compare against random feature selection

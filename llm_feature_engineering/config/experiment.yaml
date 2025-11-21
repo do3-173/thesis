@@ -2,28 +2,36 @@
 # This file defines the complete experimental setup for LLM-based feature engineering
 
 defaults:
-  - data: local_datasets
+  - data: talent_datasets
   - llm: anthropic
-  - methods: complete_methods
-  - evaluation: standard
-  - benchmark: autogluon_standard
+  - methods: llm4fs_only
+  - evaluation: llm4fs_evaluation
+  - benchmark: disabled
   - _self_
+
+# Override for LLM4FS reproduction on all 4 benchmark datasets
+data:
+  datasets:
+    - "bank"
+    - "credit-g"
+    - "pima-diabetes"
+    - "give-me-some-credit"
 
 # Experiment settings
 experiment:
-  name: "llm_feature_engineering_experiment"
-  description: "Comprehensive evaluation of LLM-based feature selection methods"
-  results_dir: "results"
+  name: "llm4fs_all_datasets_experiment"
+  description: "LLM4FS feature selection on all 4 benchmark datasets using TALENT"
+  results_dir: "experiments/llm4fs_all_datasets/results"
   random_seed: 42
   
   # Experiment phases to run
   run_feature_selection: true
-  run_autogluon_benchmark: true
-  save_intermediate: false
+  run_autogluon_benchmark: false
+  save_intermediate: true
 
 # Logging configuration
 hydra:
   run:
-    dir: experiments/${now:%Y-%m-%d_%H-%M-%S}
+    dir: experiments/llm4fs_all_datasets/${now:%Y-%m-%d_%H-%M-%S}
   job:
-    chdir: true
+    chdir: false  # Don't change directory

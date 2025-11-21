@@ -1,0 +1,89 @@
+data:
+  source: talent
+  dataset_dir: datasets_csv
+  test_size: 0.2
+  datasets:
+  - credit-g
+llm:
+  provider: huggingface
+  enabled: true
+  model: Qwen/Qwen2.5-0.5B-Instruct
+  temperature: 0.1
+  max_tokens: 1000
+  api_key: null
+methods:
+  text_based:
+    enabled: false
+  llm4fs:
+    enabled: true
+    sample_size: 200
+    temperature: 0.1
+    max_tokens: 4000
+    top_k: 16
+    traditional_methods:
+    - random_forest
+    - forward_sequential
+    - backward_sequential
+    - rfe
+    - mrmr
+    - mutual_information
+    top_k_percent: 0.3
+    aggregation: mean
+  mlp_weights:
+    enabled: false
+  mlp_permutation:
+    enabled: false
+  traditional:
+    mutual_info:
+      enabled: false
+    random_forest:
+      enabled: false
+    lasso:
+      enabled: false
+    univariate:
+      enabled: false
+    sequential:
+      enabled: false
+  baseline_classifiers:
+    logistic_regression_l2:
+      enabled: true
+      random_state: 42
+      max_iter: 1000
+      solver: lbfgs
+      penalty: l2
+      C_values:
+      - 0.001
+      - 0.01
+      - 0.1
+      - 1
+      - 10
+      - 100
+      cv_folds: 5
+    mlp:
+      enabled: false
+    random_forest_classifier:
+      enabled: false
+evaluation:
+  n_trials: 1
+  cv_folds: 3
+  models:
+    random_forest:
+      enabled: true
+      n_estimators: 50
+  primary_model: random_forest
+  metrics:
+    classification:
+    - accuracy
+    regression:
+    - r2
+benchmark:
+  autogluon:
+    enabled: false
+experiment:
+  name: llm4fs_all_datasets_experiment
+  description: LLM4FS feature selection on all 4 benchmark datasets using TALENT
+  results_dir: experiments/llm4fs_all_datasets/results
+  random_seed: 42
+  run_feature_selection: true
+  run_autogluon_benchmark: false
+  save_intermediate: true

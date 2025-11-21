@@ -1,0 +1,37 @@
+# LLM4FS Local Model Testing Configuration
+# Testing with tiny local models on CPU
+
+defaults:
+  - /data: talent_datasets
+  - /llm: huggingface
+  - /methods: llm4fs_only
+  - /evaluation: llm4fs_evaluation
+  - /benchmark: disabled
+
+# Override dataset selection - start with just one dataset for testing
+data:
+  source: "talent"
+  datasets:
+    - "credit-g"  # Smallest dataset to test first
+  test_size: 0.2
+  random_state: 42
+  dataset_dir: "datasets_csv"
+
+# Experiment metadata
+experiment:
+  name: "llm4fs_local_test"
+  description: "Testing LLM4FS with local Qwen model on CPU"
+  random_seed: 42
+  output_dir: "experiments/llm4fs_local_test"
+  results_dir: "experiments/llm4fs_local_test/results"
+  run_feature_selection: true
+  run_autogluon_benchmark: false
+  save_intermediate: true
+
+# Single trial for quick testing
+evaluation:
+  n_trials: 1
+  
+# Start with fewer shots for faster testing
+few_shot_sizes:
+  - 4

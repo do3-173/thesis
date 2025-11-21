@@ -1,0 +1,6 @@
+provider: "huggingface"
+enabled: true
+model: "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+temperature: 0.1
+max_tokens: 1000
+api_key: null

@@ -1,0 +1,33 @@
+# Local Tiny LLM Experiment
+# Testing pipeline with Qwen2.5-0.5B-Instruct on CPU
+
+defaults:
+  - /data: talent_datasets
+  - /llm: huggingface
+  - /methods: llm4fs_only
+  - /evaluation: llm4fs_evaluation
+  - /benchmark: disabled
+  - _self_
+
+# Override dataset selection to a small subset for quick testing
+data:
+  source: "talent"
+  datasets:
+    - "pima-diabetes" # Smallest dataset (614 rows)
+  test_size: 0.2
+  random_state: 42
+  dataset_dir: "datasets_csv"
+
+# Experiment metadata
+experiment:
+  name: "local_tiny_llm_test"
+  description: "Testing local execution with Qwen2.5-0.5B-Instruct"
+  random_seed: 42
+  output_dir: "experiments/local_tiny_llm"
+  results_dir: "experiments/local_tiny_llm/results"
+  run_feature_selection: true
+  run_autogluon_benchmark: false
+  save_intermediate: true
+  
+few_shot_sizes:
+  - 4

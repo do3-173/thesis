@@ -1,0 +1,70 @@
+\section{Empirical Findings and Performance Analysis}
+\label{sec:empirical}
+
+\subsection{Comparative Effectiveness of Methodological Approaches}
+
+Extensive empirical evaluation across multiple studies reveals several consistent patterns regarding the relative effectiveness of different LLM-based approaches for feature engineering tasks.
+
+Li et al. \cite{li2024exploring} demonstrate through comprehensive experiments across diverse datasets that text-based feature selection consistently outperforms data-driven methods in scenarios with limited training data. This superiority manifests across multiple critical dimensions that collectively establish the robustness of text-based approaches. Text-based methods consistently achieve higher performance metrics, including Area Under the Receiver Operating Characteristic curve (AUROC) for classification tasks and Mean Absolute Error (MAE) for regression tasks, across different dataset types ranging from medical and financial domains to social and behavioral datasets. The stability advantage is evident in the significantly lower variance in performance across different data availability settings, indicating that text-based approaches maintain consistent quality regardless of the specific sample size or data distribution characteristics. Finally, the robustness of text-based methods is demonstrated through their consistent performance regardless of specific dataset characteristics such as dimensionality, class balance, or feature correlation structures, making them more reliable for practical deployment across diverse application domains.
+
+The authors report that text-based approaches using GPT-4 achieve performance comparable to traditional methods like Minimum Redundancy Maximum Relevance (MRMR) selection and Recursive Feature Elimination (RFE), while requiring no training data.
+
+\loris{These metrics are not common, they should be introduced too.}
+
+% \edo TODO: Add specific prompt examples from Li et al. 2024 paper:
+% 1. Data-driven prompt example (Table 4 in paper): Shows feature values paired with target values
+%    Example: "(no checking, no), (<0, yes), (0<=X<200, yes)..." 
+% 2. Text-based prompt example (Table 5 in paper): Shows dataset context + feature description
+%    Example: "Context: Using data collected at a German bank, we wish to build a machine learning model..."
+% These are in Appendix A of "Exploring Large Language Models for Feature Selection" paper
+% Also add the JSON output format they use for structured responses 
+
+The authors report that text-based approaches using GPT-4 achieve performance comparable to traditional automated feature selection methods, while requiring no training data.
+
+\subsection{Traditional Feature Selection Baselines}
+
+To properly contextualize LLM-based approaches, it is essential to understand the established traditional methods that serve as performance baselines in comparative studies.
+
+\textbf{Minimum Redundancy Maximum Relevance (MRMR)} represents a foundational filter-based feature selection method that balances two competing objectives: maximizing relevance to the target variable while minimizing redundancy among selected features \cite{peng2005feature}. MRMR operates by selecting features that have high mutual information with the target variable but low mutual information with already selected features. Formally, given a set of features $F$ and target variable $y$, MRMR selects feature subset $S$ by optimizing:
+\begin{equation}
+\text{MRMR} = \arg\max_{f_i \in F \setminus S} \left[ I(f_i; y) - \frac{1}{|S|} \sum_{f_j \in S} I(f_i; f_j) \right]
+\end{equation}
+where $I(\cdot; \cdot)$ represents mutual information. This approach effectively addresses the common problem where individually relevant features may become redundant when combined.
+
+\textbf{Recursive Feature Elimination (RFE)} employs a wrapper-based approach that iteratively removes features based on model performance feedback \cite{guyon2002gene}. RFE trains a machine learning model on the current feature set, ranks features by importance (typically using model coefficients or feature importance scores), removes the least important features, and repeats until the desired number of features remains. This method's advantage lies in its model-aware selection process, ensuring that selected features work well together for the specific learning algorithm employed.
+
+Both methods represent computationally intensive approaches that require full dataset access and extensive model training, contrasting sharply with LLM-based approaches that can operate with minimal data samples and no model training requirements.
+
+\loris{Both techniques must be introduced. Maybe an introduction to standard feature engineering methodologies can be useful.}
+
+A significant finding across multiple studies is the strong correlation between LLM size and feature engineering effectiveness, particularly for text-based approaches. Li et al. observe clear scaling laws where larger models (GPT-4 vs. ChatGPT vs. LLaMA-2) demonstrate progressively better feature selection capabilities. This scaling behavior is less pronounced for data-driven methods, suggesting that semantic understanding rather than pure computational capacity drives effectiveness in feature engineering tasks.
+
+A consistent limitation identified across studies is the degradation of data-driven methods as sample size increases beyond 64-128 samples. Li et al. attribute this phenomenon to LLMs' well-documented struggles with processing long sequences \cite{liu2024lost}, which constrains the practical applicability of data-driven feature selection in real-world scenarios with abundant data.
+
+\subsection{Domain-Specific Applications and Specialization}
+
+The literature reveals particular promise for LLM-based feature engineering in specialized domains where traditional statistical methods may miss important semantic relationships.
+
+Medical and biomedical applications represent a particularly promising area for LLM-based feature engineering. Li et al. introduce Retrieval-Augmented Feature Selection (RAFS) specifically designed for medical applications involving high-dimensional genomic data. RAFS addresses the challenge of domain-specific terminology by retrieving metadata from authoritative sources such as the National Center for Biotechnology Information (NCBI). In experiments with The Cancer Genome Atlas (TCGA) Lung Adenocarcinoma dataset, RAFS demonstrates significant improvements over random feature selection while maintaining privacy by avoiding direct data sharing.
+
+The RAFS approach demonstrates measurable improvements across multiple evaluation metrics, achieving an Antolini's Concordance score of 0.6566 compared to 0.6516 for random feature selection, indicating better discrimination capability in survival prediction tasks. The method also shows improvement in the Integrated Brier Score, achieving 0.1830 versus 0.1833 for random selection, suggesting better calibration of predicted survival probabilities over time. Additionally, RAFS achieves superior D-Calibration performance with a score of 1.7666 compared to 2.0255 for random selection, indicating more reliable probability estimates across different risk groups.
+
+\subsection{Survival Analysis Evaluation Metrics}
+
+The medical domain applications employ specialized evaluation metrics designed for survival analysis that differ significantly from standard classification or regression metrics.
+
+\textbf{Antolini's Concordance Index (C-index)} measures the discriminative ability of survival models by calculating the proportion of comparable pairs where the model correctly orders survival times \cite{antolini2005unified}. For two patients $i$ and $j$ where patient $i$ experiences an event before patient $j$, the C-index evaluates whether the model assigns a higher risk score to patient $i$. Formally, the C-index is defined as:
+\begin{equation}
+C\text{-index} = \frac{\sum_{i,j} \mathbf{1}_{t_i < t_j} \cdot \mathbf{1}_{\hat{f}(x_i) > \hat{f}(x_j)} \cdot \delta_i}{\sum_{i,j} \mathbf{1}_{t_i < t_j} \cdot \delta_i}
+\end{equation}
+where $t_i$ represents survival time, $\hat{f}(x_i)$ is the predicted risk score, and $\delta_i$ indicates whether the event was observed. Values range from 0.5 (random prediction) to 1.0 (perfect discrimination).
+
+\textbf{Integrated Brier Score (IBS)} evaluates prediction accuracy over time by measuring the mean squared difference between predicted survival probabilities and observed outcomes across multiple time points \cite{graf1999assessment}. The Brier Score at time $t$ is:
+\begin{equation}
+BS(t) = \frac{1}{n} \sum_{i=1}^{n} \left[ \mathbf{1}_{T_i \leq t} - \hat{S}_i(t) \right]^2 \cdot w_i(t)
+\end{equation}
+where $\hat{S}_i(t)$ is the predicted survival probability at time $t$ for patient $i$, and $w_i(t)$ represents inverse probability weighting to handle censoring. The IBS integrates these scores over time, providing a comprehensive accuracy measure.
+
+\textbf{D-Calibration} assesses the reliability of predicted survival probabilities by examining whether predicted probabilities match observed frequencies across different risk groups \cite{demler2015tests}. Perfect calibration occurs when patients predicted to have X\% survival probability actually survive at that rate. Poor D-calibration indicates systematic over- or under-estimation of survival probabilities, even if discrimination (C-index) remains acceptable.
+
+Han et al. demonstrate particular strength in complex domains requiring domain-specific knowledge, including medical prediction tasks and game-theoretic scenarios. Their framework achieves state-of-the-art performance across 13 diverse datasets, with particularly notable improvements in scenarios where traditional feature engineering struggles due to limited domain expertise availability.

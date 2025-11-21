@@ -22,12 +22,8 @@ from .feature_selection import (
 )
 
 # MLP Feature Selection (requires PyTorch)
-try:
-    from .mlp_feature_selection import MLPFeatureSelector, mlp_feature_selection
-    MLP_AVAILABLE = True
-except ImportError:
-    MLP_AVAILABLE = False
-    print("PyTorch not available. MLP feature selection methods disabled.")
+# PyTorch implementation archived in favor of sklearn implementation
+MLP_AVAILABLE = False
 from .evaluation import FeatureSelectionEvaluator
 from .autogluon_benchmark import AutoGluonBenchmark
 from .experiment_runner import ExperimentRunner

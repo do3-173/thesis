@@ -9,10 +9,19 @@ import os
 import time
 from typing import Optional, Dict, Any
 from abc import ABC, abstractmethod
+from pathlib import Path
 
 import anthropic
 import openai
 from dotenv import load_dotenv
+
+# Load .env from project root (parent of llm_feature_engineering)
+env_path = Path(__file__).parent.parent.parent.parent / '.env'
+if env_path.exists():
+    load_dotenv(env_path)
+else:
+    # Fallback to default load_dotenv behavior
+    load_dotenv()
 
 
 class LLMInterface(ABC):
@@ -173,12 +182,85 @@ class OpenAIInterface(LLMInterface):
             return None
 
 
+class HuggingFaceInterface(LLMInterface):
+    """Hugging Face Transformers interface implementation for local models."""
+
+    def _get_default_model(self) -> str:
+        """Get default Hugging Face model."""
+        return "Qwen/Qwen2.5-0.5B-Instruct"
+
+    def _load_api_key(self) -> Optional[str]:
+        """Load Hugging Face token from environment (optional)."""
+        load_dotenv()
+        return os.getenv('HUGGINGFACE_TOKEN')
+
+    def _initialize_client(self):
+        """Initialize Hugging Face model and tokenizer."""
+        try:
+            from transformers import AutoModelForCausalLM, AutoTokenizer
+            import torch
+        except ImportError:
+            raise ImportError("transformers and torch are required for HuggingFaceInterface")
+
+        print(f"Loading local model: {self.model}...")
+        
+        # Determine device
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        print(f"Using device: {device}")
+
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model, token=self.api_key)
+        self.llm_model = AutoModelForCausalLM.from_pretrained(
+            self.model,
+            token=self.api_key,
+            device_map=device,
+            torch_dtype=torch.float32 if device == "cpu" else torch.float16,
+            trust_remote_code=True
+        )
+        return self.llm_model
+
+    def call_llm(self, prompt: str, max_tokens: int = 1000, temperature: float = 0.1) -> Optional[str]:
+        """
+        Make generation call to local Hugging Face model.
+        """
+        try:
+            # Check if chat template is available, otherwise fallback to raw prompt
+            if hasattr(self.tokenizer, "apply_chat_template") and self.tokenizer.chat_template:
+                messages = [{"role": "user", "content": prompt}]
+                text = self.tokenizer.apply_chat_template(
+                    messages,
+                    tokenize=False,
+                    add_generation_prompt=True
+                )
+            else:
+                text = prompt
+
+            model_inputs = self.tokenizer([text], return_tensors="pt").to(self.llm_model.device)
+
+            generated_ids = self.llm_model.generate(
+                model_inputs.input_ids,
+                max_new_tokens=max_tokens,
+                temperature=temperature,
+                do_sample=True if temperature > 0 else False,
+                pad_token_id=self.tokenizer.eos_token_id
+            )
+            
+            generated_ids = [
+                output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
+            ]
+
+            response = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+            return response
+        except Exception as e:
+            print(f"Hugging Face generation failed: {e}")
+            return None
+
+
 def create_llm_interface(provider: str, model: Optional[str] = None, api_key: Optional[str] = None) -> LLMInterface:
     """
     Factory function to create LLM interface instances.
     
     Args:
-        provider: LLM provider name ('anthropic' or 'openai')
+        provider: LLM provider name ('anthropic', 'openai', 'huggingface')
         model: Model name (uses default if None)
         api_key: API key (loads from environment if None)
         
@@ -192,5 +274,7 @@ def create_llm_interface(provider: str, model: Optional[str] = None, api_key: Op
         return AnthropicInterface(provider, model, api_key)
     elif provider.lower() == "openai":
         return OpenAIInterface(provider, model, api_key)
+    elif provider.lower() == "huggingface":
+        return HuggingFaceInterface(provider, model, api_key)
     else:
-        raise ValueError(f"Unsupported provider: {provider}. Supported providers: 'anthropic', 'openai'")
+        raise ValueError(f"Unsupported provider: {provider}. Supported providers: 'anthropic', 'openai', 'huggingface'")

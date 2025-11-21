@@ -1,0 +1,39 @@
+# LLM4FS Paper Reproduction Configuration
+# Reproduces results from "LLM4FS: Leveraging Large Language Models for Feature Selection and How to Improve It"
+# Testing on 4 benchmark datasets: Bank, Credit-G, Pima Indians Diabetes, Give Me Some Credit
+
+defaults:
+  - /data: talent_datasets
+  - /llm: anthropic  # Can be changed to openai
+  - /methods: llm4fs_only
+  - /evaluation: llm4fs_evaluation
+  - /benchmark: disabled
+
+# Override dataset selection to only LLM4FS benchmarks
+data:
+  source: "talent"
+  datasets:
+    - "bank"
+    - "credit-g"
+    - "pima-diabetes"
+    - "give-me-some-credit"
+  test_size: 0.2
+  random_state: 42
+  dataset_dir: "datasets_csv"  # Fallback for local datasets
+
+# Experiment metadata
+experiment:
+  name: "llm4fs_reproduction"
+  description: "Reproducing LLM4FS hybrid feature selection method on benchmark datasets"
+  random_seed: 42
+  output_dir: "experiments/llm4fs_reproduction"
+  results_dir: "experiments/llm4fs_reproduction/results"
+  run_feature_selection: true
+  run_autogluon_benchmark: false
+  save_intermediate: true
+  
+# Few-shot configurations to test (4, 8, 16 shots as per paper)
+few_shot_sizes:
+  - 4
+  - 8
+  - 16

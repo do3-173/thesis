@@ -18,6 +18,13 @@ llm4fs:
   max_tokens: 3000
   sample_size: 200
 
+# CAAFE (Context-Aware Automated Feature Engineering)
+caafe:
+  enabled: true
+  n_iterations: 5
+  metric: "roc_auc"
+  top_k: 5
+
 # MLP weights feature selection (enabled)
 mlp_weights:
   enabled: true

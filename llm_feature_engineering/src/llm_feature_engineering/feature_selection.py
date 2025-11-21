@@ -18,6 +18,7 @@ from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.preprocessing import LabelEncoder
 
 from .llm_interface import LLMInterface
+# from .caafe import CAAFESelector # Moved inside create_feature_selector to avoid circular import
 
 
 class FeatureSelector(ABC):
@@ -278,68 +279,92 @@ class LLM4FSHybridSelector(FeatureSelector):
         # Convert to CSV string format
         return sample_df.to_csv(index=False)
     
-    def create_hybrid_prompt(self, data_csv: str, task_type: str = "classification") -> str:
+    def create_hybrid_prompt(self, data_csv: str, target_name: str, task_type: str = "classification") -> str:
         """
-        Create prompt for hybrid LLM4FS approach.
+        Create prompt for hybrid LLM4FS approach matching the paper specification.
+        
+        Based on LLM4FS paper (Li & Xiu, 2025), Figure 2.
+        The LLM should apply traditional data-driven methods and return feature importance scores.
         
         Args:
             data_csv: CSV representation of the data
+            target_name: Name of the target/class column
             task_type: Type of ML task
             
         Returns:
             Formatted prompt string
         """
-        prompt = f"""
-You are an expert data scientist. Please analyze the following dataset and apply traditional feature selection methods to rank features by importance.
+        prompt = f"""Please apply random forest, forward sequential selection, backward sequential selection, recursive feature elimination (RFE), minimum redundancy maximum relevance (MRMR), and mutual information (MI) separately to analyze the dataset samples. This is a {task_type} task, where "{target_name}" represents the classification target. Please analyze the importance scores of all features. The score range is [0.0, 1.0], and the score of each feature should be different. The output format is as follows, in JSON file format.
 
-Dataset (CSV format):
+Format for Response:
+[
+    {{
+        "concept-1": "feature_name_1",
+        "reasoning": "The feature importance score is calculated using a random forest classifier. A higher score indicates greater importance in predicting the target variable.",
+        "score": 0.95
+    }},
+    {{
+        "concept-2": "feature_name_2", 
+        "reasoning": "Combined analysis from RF, MI, RFE, MRMR, and sequential selection methods.",
+        "score": 0.85
+    }}
+]
+
+Dataset Samples (csv file with 200 samples):
 {data_csv}
 
-Task: This is a {task_type} problem. The last column is the target variable.
-
-Please apply the following feature selection methods and provide importance scores:
-1. Random Forest feature importance
-2. Mutual Information
-3. Recursive Feature Elimination (RFE)
-4. Forward/Backward Selection
-
-For each feature (excluding the target), provide an importance score between 0.0 and 1.0.
-
-Format your response EXACTLY as JSON with this structure:
-{{
-    "method": "hybrid_llm4fs",
-    "features": [
-        {{"name": "feature_name", "importance_score": 0.XX, "reasoning": "Brief explanation"}},
-        {{"name": "feature_name", "importance_score": 0.XX, "reasoning": "Brief explanation"}}
-    ]
-}}
-
-Base your analysis on statistical relationships in the data, not just semantic understanding.
-"""
+Important: 
+- Apply the statistical methods (RF, MI, RFE, MRMR, sequential selection) to the data
+- Provide a unique score for each feature
+- Rank all features except the target column
+- Base scores on actual statistical analysis, not semantic reasoning"""
         return prompt
     
-    def extract_partial_features(self, response: str) -> List[Dict[str, Any]]:
+    def extract_features_from_response(self, response: str) -> List[Dict[str, Any]]:
         """
-        Extract features from a potentially truncated JSON response.
+        Extract features from LLM response (handles both complete and partial JSON).
         
         Args:
             response: LLM response text
             
         Returns:
-            List of extracted feature dictionaries
+            List of feature dictionaries with scores
         """
         features = []
         
-        # Try to find feature objects even if JSON is incomplete
-        feature_pattern = r'"name":\\s*"([^"]+)",\\s*"importance_score":\\s*([0-9.]+),\\s*"reasoning":\\s*"([^"]*)"'
-        matches = re.findall(feature_pattern, response, re.DOTALL)
+        # First try to parse as complete JSON array
+        try:
+            parsed = json.loads(response)
+            if isinstance(parsed, list):
+                for item in parsed:
+                    # Handle both concept-N and name formats
+                    name_key = None
+                    for key in item.keys():
+                        if 'concept' in key.lower() or key == 'name' or key == 'feature':
+                            name_key = key
+                            break
+                    
+                    if name_key:
+                        features.append({
+                            'name': item[name_key],
+                            'importance_score': float(item.get('score', item.get('importance_score', 0.5))),
+                            'reasoning': item.get('reasoning', 'LLM4FS hybrid score')
+                        })
+            return features
+        except json.JSONDecodeError:
+            pass
         
-        for name, score, reasoning in matches:
+        # Fallback: extract from partial/malformed JSON
+        # Pattern for "concept-N": "feature_name" ... "score": 0.XX
+        pattern = r'"(?:concept-\d+|name|feature)":\s*"([^"]+)"[^}]*"(?:score|importance_score)":\s*([0-9.]+)'
+        matches = re.findall(pattern, response, re.DOTALL)
+        
+        for name, score in matches:
             try:
                 features.append({
                     'name': name,
                     'importance_score': float(score),
-                    'reasoning': reasoning[:100] + "..." if len(reasoning) > 100 else reasoning
+                    'reasoning': 'LLM4FS hybrid score (extracted)'
                 })
             except ValueError:
                 continue
@@ -352,6 +377,11 @@ Base your analysis on statistical relationships in the data, not just semantic u
         """
         Select features using LLM4FS hybrid approach.
         
+        Implements the hybrid strategy from Li & Xiu (2025):
+        - Send ~200 data samples to LLM
+        - LLM applies traditional methods (RF, MI, RFE, MRMR, sequential selection)
+        - Returns ranked features with importance scores
+        
         Args:
             X: Feature matrix
             y: Target variable
@@ -362,9 +392,10 @@ Base your analysis on statistical relationships in the data, not just semantic u
             List of selected features with scores
         """
         print("Applying LLM4FS hybrid feature selection...")
+        print(f"Dataset shape: {X.shape}")
         
-        # Prepare data sample
-        data_csv = self.prepare_data_sample(X, y)
+        # Prepare data sample (200 samples as per paper)
+        data_csv = self.prepare_data_sample(X, y, sample_size=200)
         
         # Determine task type
         task_type = "classification"
@@ -372,48 +403,40 @@ Base your analysis on statistical relationships in the data, not just semantic u
             task_type = dataset_info['metadata'].get('task_type', 
                                                    dataset_info['metadata'].get('problem_type', 'classification'))
         
-        # Create prompt
-        prompt = self.create_hybrid_prompt(data_csv, task_type)
+        # Get target column name
+        target_name = y.name if y.name else "Class"
         
-        # Make LLM call with higher token limit
-        response = self.llm.call_llm(prompt, max_tokens=3000, temperature=0.1)
+        # Create prompt matching paper specification
+        prompt = self.create_hybrid_prompt(data_csv, target_name, task_type)
+        
+        # Make LLM call with higher token limit (paper uses more output)
+        print("Sending request to LLM...")
+        response = self.llm.call_llm(prompt, max_tokens=4000, temperature=0.1)
         
         if not response:
-            print("API call failed")
+            print("ERROR: API call failed")
             return []
         
-        try:
-            # Parse JSON response
-            result = json.loads(response)
-            features = result.get('features', [])
+        # Extract features from response
+        features = self.extract_features_from_response(response)
+        
+        if not features:
+            print("WARNING: Could not extract features from LLM response")
+            print(f"Response preview: {response[:500]}...")
+            return []
+        
+        print(f"Successfully extracted {len(features)} features")
+        
+        # Sort by importance score
+        features.sort(key=lambda x: x.get('importance_score', 0), reverse=True)
+        
+        # Store scores
+        self.feature_scores = {f['name']: f['importance_score'] for f in features}
+        
+        if top_k:
+            features = features[:top_k]
             
-            # Sort by importance score
-            features.sort(key=lambda x: x.get('importance_score', 0), reverse=True)
-            
-            if top_k:
-                features = features[:top_k]
-                
-            return features
-            
-        except json.JSONDecodeError as e:
-            print(f"Failed to parse LLM response as complete JSON: {e}")
-            print("Attempting to extract partial features from response...")
-            
-            # Try to extract partial JSON from truncated response
-            features = self.extract_partial_features(response)
-            
-            if features:
-                print(f"Successfully extracted {len(features)} features from partial response")
-                features.sort(key=lambda x: x.get('importance_score', 0), reverse=True)
-                
-                if top_k:
-                    features = features[:top_k]
-                    
-                return features
-            else:
-                print("Could not extract features from response")
-                print(f"Response preview: {response[:300]}...")
-                return []
+        return features
 
 
 class TraditionalFeatureSelector(FeatureSelector):
@@ -586,6 +609,12 @@ def create_feature_selector(selector_type: str, **kwargs) -> FeatureSelector:
             raise ValueError("LLM interface required for LLM4FS selector")
         return LLM4FSHybridSelector(kwargs['llm_interface'])
     
+    elif selector_type == "caafe":
+        if 'llm_interface' not in kwargs:
+            raise ValueError("LLM interface required for CAAFE selector")
+        from .caafe import CAAFESelector
+        return CAAFESelector(kwargs['llm_interface'], **{k: v for k, v in kwargs.items() if k != 'llm_interface'})
+
     elif selector_type == "traditional":
         method = kwargs.get('method', 'mutual_info')
         return TraditionalFeatureSelector(method)
