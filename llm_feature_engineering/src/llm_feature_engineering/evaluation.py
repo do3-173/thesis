@@ -47,7 +47,7 @@ class FeatureSelectionEvaluator:
         Returns:
             True if classification, False if regression
         """
-        # Check if dtype is object (string labels)
+
         if y.dtype == 'object':
             return True
         
@@ -77,10 +77,10 @@ class FeatureSelectionEvaluator:
         if not selected_features:
             raise ValueError("No features selected for evaluation")
             
-        # Select features
+
         x_selected = X[selected_features]
         
-        # Determine task type
+
         is_classification = self.is_classification_task(y)
         
         # Process target variable for classification
@@ -177,7 +177,7 @@ class FeatureSelectionEvaluator:
         cv_splitter = self.get_cv_splitter(is_classification)
         scoring = self.get_scoring_metric(is_classification, task_info)
         
-        # Evaluate each model
+
         model_results = {}
         for model_name, model in models.items():
             try:
@@ -237,7 +237,7 @@ class FeatureSelectionEvaluator:
             if 'error' not in result:
                 all_results.append(result)
             
-            # Reset random state
+
             self.random_state = original_state
         
         if not all_results:
@@ -254,7 +254,7 @@ class FeatureSelectionEvaluator:
             'model_aggregates': {}
         }
         
-        # Aggregate results for each model
+
         model_names = all_results[0]['model_results'].keys()
         for model_name in model_names:
             model_scores = []
@@ -375,7 +375,7 @@ class FeatureSelectionEvaluator:
             ax1.text(bar.get_x() + bar.get_width()/2., height + std + 0.01,
                     f'{score:.3f}', ha='center', va='bottom', fontweight='bold')
         
-        # Number of features
+
         ax2 = axes[0, 1]  
         ax2.bar(df['Method'], df['Num Features'])
         ax2.set_title('Number of Selected Features')
@@ -443,7 +443,7 @@ class FeatureSelectionEvaluator:
             'n_trials': self.n_trials,
         }
         
-        # Get best performing method
+
         df = self.compare_methods()
         if not df.empty:
             best_method = df.iloc[0]

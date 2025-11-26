@@ -18,7 +18,7 @@ from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.preprocessing import LabelEncoder
 
 from .llm_interface import LLMInterface
-# from .caafe import CAAFESelector # Moved inside create_feature_selector to avoid circular import
+
 
 
 class FeatureSelector(ABC):
@@ -101,7 +101,7 @@ class TextBasedFeatureSelector(FeatureSelector):
         name = dataset_info.get('name', 'Unknown')
         metadata = dataset_info.get('metadata', {})
         
-        # Handle both local and TALENT datasets
+
         if 'shape' in dataset_info:
             shape = dataset_info['shape']
             columns = dataset_info['columns']
@@ -180,7 +180,7 @@ Format your response as JSON:
             }
         
         try:
-            # Try to parse JSON response
+
             result = json.loads(response)
             return result
         except json.JSONDecodeError:
@@ -225,7 +225,7 @@ Format your response as JSON:
             # Small delay to be respectful to API
             time.sleep(0.5)
         
-        # Sort by importance score
+
         results.sort(key=lambda x: x['importance_score'], reverse=True)
         
         if top_k:
@@ -266,17 +266,17 @@ class LLM4FSHybridSelector(FeatureSelector):
         Returns:
             CSV string representation of the data sample
         """
-        # Combine features and target
+
         df = X.copy()
         df[y.name or 'target'] = y
         
-        # Sample data (or use all if less than sample_size)
+
         if len(df) > sample_size:
             sample_df = df.sample(n=sample_size, random_state=42)
         else:
             sample_df = df.copy()
             
-        # Convert to CSV string format
+
         return sample_df.to_csv(index=False)
     
     def create_hybrid_prompt(self, data_csv: str, target_name: str, task_type: str = "classification") -> str:
@@ -332,7 +332,7 @@ Important:
         """
         features = []
         
-        # First try to parse as complete JSON array
+
         try:
             parsed = json.loads(response)
             if isinstance(parsed, list):
@@ -394,19 +394,19 @@ Important:
         print("Applying LLM4FS hybrid feature selection...")
         print(f"Dataset shape: {X.shape}")
         
-        # Prepare data sample (200 samples as per paper)
+
         data_csv = self.prepare_data_sample(X, y, sample_size=200)
         
-        # Determine task type
+
         task_type = "classification"
         if dataset_info and 'metadata' in dataset_info:
             task_type = dataset_info['metadata'].get('task_type', 
                                                    dataset_info['metadata'].get('problem_type', 'classification'))
         
-        # Get target column name
+
         target_name = y.name if y.name else "Class"
         
-        # Create prompt matching paper specification
+
         prompt = self.create_hybrid_prompt(data_csv, target_name, task_type)
         
         # Make LLM call with higher token limit (paper uses more output)
@@ -417,7 +417,7 @@ Important:
             print("ERROR: API call failed")
             return []
         
-        # Extract features from response
+
         features = self.extract_features_from_response(response)
         
         if not features:
@@ -430,7 +430,7 @@ Important:
         # Sort by importance score
         features.sort(key=lambda x: x.get('importance_score', 0), reverse=True)
         
-        # Store scores
+
         self.feature_scores = {f['name']: f['importance_score'] for f in features}
         
         if top_k:
@@ -466,7 +466,7 @@ class TraditionalFeatureSelector(FeatureSelector):
         Returns:
             True if classification, False if regression
         """
-        # Check if dtype is object (string labels)
+
         if y.dtype == 'object':
             return True
         
@@ -493,7 +493,7 @@ class TraditionalFeatureSelector(FeatureSelector):
         Returns:
             List of features with importance scores
         """
-        # Handle categorical target
+
         if self.is_classification_task(y):
             if y.dtype == 'object':
                 le = LabelEncoder()
@@ -646,7 +646,7 @@ class MLPWeightSelector(FeatureSelector):
         """
         super().__init__("mlp_weights")
         
-        # Extract top_k parameter
+
         self.top_k_default = config_params.get('top_k', 10)
         
         # Filter out config-specific parameters that shouldn't go to sklearn
@@ -657,7 +657,7 @@ class MLPWeightSelector(FeatureSelector):
             if key not in config_only_params:
                 sklearn_params[key] = value
         
-        # Set default MLP parameters
+
         self.mlp_params = {
             'hidden_layer_sizes': (64, 32),
             'max_iter': 200,
@@ -690,34 +690,34 @@ class MLPWeightSelector(FeatureSelector):
         # Determine task type
         task_type = self._determine_task_type(y)
         
-        # Prepare data
+
         scaler = StandardScaler()
         X_scaled = scaler.fit_transform(X)
         
-        # Create and train MLP
+
         if task_type == 'classification':
             mlp = MLPClassifier(**self.mlp_params)
         else:
             mlp = MLPRegressor(**self.mlp_params)
         
-        # Split data for training
+
         X_train, X_test, y_train, y_test = train_test_split(
             X_scaled, y, test_size=0.2, random_state=42,
             stratify=y if task_type == 'classification' else None
         )
         
-        # Train model
+
         mlp.fit(X_train, y_train)
         
         # Calculate feature importance using first layer weights
         first_layer_weights = mlp.coefs_[0]  # Shape: (n_features, n_hidden_units)
         importance_scores = np.linalg.norm(first_layer_weights, axis=1)
         
-        # Normalize scores to [0, 1]
+
         if np.max(importance_scores) > 0:
             importance_scores = importance_scores / np.max(importance_scores)
         
-        # Create feature list with scores
+
         features = []
         for i, (feature_name, score) in enumerate(zip(X.columns, importance_scores)):
             features.append({
@@ -726,10 +726,10 @@ class MLPWeightSelector(FeatureSelector):
                 'reasoning': f'MLP weight magnitude importance: {score:.4f}. This score represents the L2 norm of the first layer weights connected to this feature, indicating its influence on the neural network\'s initial processing.'
             })
         
-        # Sort by importance
+
         features.sort(key=lambda x: x['importance_score'], reverse=True)
         
-        # Select top k features if specified
+
         if top_k is not None:
             features = features[:top_k]
         elif hasattr(self, 'top_k_default'):
@@ -744,7 +744,7 @@ class MLPWeightSelector(FeatureSelector):
         """Determine if task is classification or regression."""
         import numpy as np
         
-        # Handle both pandas Series and numpy arrays
+
         if hasattr(y, 'dtype'):
             dtype = y.dtype
         else:
@@ -778,7 +778,7 @@ class MLPPermutationSelector(FeatureSelector):
         """
         super().__init__("mlp_permutation")
         
-        # Extract config-specific parameters
+
         self.top_k_default = config_params.get('top_k', 10)
         self.n_repeats = config_params.get('n_repeats', 5)
         

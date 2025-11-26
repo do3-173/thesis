@@ -3,7 +3,7 @@
 
 # @package _global_
 source: "local"  # local, talent, or auto
-dataset_dir: "../../../datasets_csv"
+dataset_dir: "../datasets_csv"
 test_size: 0.2
 
 # Specific datasets to process

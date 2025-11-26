@@ -6,8 +6,8 @@
 set -e
 
 # Default configuration
-CONFIG_DIR="$(dirname "$0")/config"
-SRC_DIR="$(dirname "$0")/src"
+CONFIG_DIR="$(dirname "$0")/../config"
+SRC_DIR="$(dirname "$0")/../src"
 
 # Add src to Python path
 export PYTHONPATH="${SRC_DIR}:${PYTHONPATH}"
@@ -34,7 +34,7 @@ run_experiment() {
     [[ -n "$additional_overrides" ]] && echo "  Additional: $additional_overrides"
     echo "-------------------------------------"
     
-    cd "$(dirname "$0")"
+    cd "$(dirname "$0")/.."
     python -m src.llm_feature_engineering.experiment_runner \
         data="$data_config" \
         methods="$methods_config" \
@@ -109,6 +109,11 @@ case "${1:-help}" in
         run_experiment "talent_datasets" "traditional_only" "fast" "disabled" "disabled" \
             "data.datasets=[cmc]"
         ;;
+
+    "reproduction")
+        echo "Running reproduction experiment (LLM4FS + CAAFE on benchmark datasets)..."
+        run_experiment "talent_datasets" "reproduction" "llm4fs_evaluation" "huggingface" "disabled"
+        ;;
     
     "help"|*)
         echo "Usage: $0 [COMMAND] [additional_overrides...]"
@@ -126,6 +131,7 @@ case "${1:-help}" in
         echo "  openai        Run with OpenAI GPT LLM"
         echo "  benchmark-only Run only AutoGluon benchmarks"
         echo "  test-single   Run single dataset test"
+        echo "  reproduction  Run reproduction experiment"
         echo "  help          Show this help message"
         echo ""
         echo "Available Configurations:"

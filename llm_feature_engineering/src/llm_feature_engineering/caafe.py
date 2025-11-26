@@ -42,17 +42,17 @@ class CAAFESelector(FeatureSelector):
         current_score = self._evaluate_performance(current_X, y)
         logger.info(f"Initial {self.metric}: {current_score:.4f}")
         
-        # Update dataset description if provided in dataset_info
+
         if dataset_info and 'description' in dataset_info:
             self.dataset_description = dataset_info['description']
             
         for i in range(self.n_iterations):
             logger.info(f"CAAFE Iteration {i+1}/{self.n_iterations}")
             
-            # Generate prompt
+
             prompt = self._generate_prompt(current_X, y, i)
             
-            # Get code from LLM
+
             try:
                 response = self.llm.call_llm(prompt, max_tokens=1000, temperature=0.1)
                 if response:
@@ -70,7 +70,7 @@ class CAAFESelector(FeatureSelector):
                 logger.warning("No code block found in LLM response.")
                 continue
                 
-            # Execute code
+
             try:
                 new_X, new_features = self._execute_code(current_X, code_block)
             except Exception as e:
@@ -78,7 +78,7 @@ class CAAFESelector(FeatureSelector):
                 # Ideally, we would feed the error back to the LLM in the next step
                 continue
                 
-            # Evaluate
+
             new_score = self._evaluate_performance(new_X, y)
             logger.info(f"New {self.metric}: {new_score:.4f} (Previous: {current_score:.4f})")
             
@@ -123,7 +123,7 @@ class CAAFESelector(FeatureSelector):
         final_X = self.transform(X)
         selected_features = []
         
-        # Calculate importance for the final set of features
+
         clf = RandomForestClassifier(**self.clf_params)
         clf.fit(final_X, y)
         importances = clf.feature_importances_
@@ -146,7 +146,7 @@ class CAAFESelector(FeatureSelector):
         """
         Construct the prompt for the LLM based on the paper.
         """
-        # Basic stats
+
         n_samples = len(df)
         columns_info = []
         for col in df.columns:
@@ -224,7 +224,7 @@ Codeblock:
         exec(code, {}, local_vars)
         new_df = local_vars['df']
         
-        # Identify new features
+
         new_features = [c for c in new_df.columns if c not in df.columns]
         
         return new_df, new_features
@@ -239,7 +239,7 @@ Codeblock:
         for col in X_encoded.select_dtypes(include=['object', 'category']).columns:
             X_encoded[col] = pd.factorize(X_encoded[col])[0]
             
-        X_encoded = X_encoded.fillna(0) # Simple imputation
+        X_encoded = X_encoded.fillna(0)
         
         clf = RandomForestClassifier(**self.clf_params)
         cv = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)

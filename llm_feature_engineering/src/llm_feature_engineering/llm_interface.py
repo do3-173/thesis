@@ -20,7 +20,7 @@ env_path = Path(__file__).parent.parent.parent.parent / '.env'
 if env_path.exists():
     load_dotenv(env_path)
 else:
-    # Fallback to default load_dotenv behavior
+
     load_dotenv()
 
 
@@ -204,7 +204,6 @@ class HuggingFaceInterface(LLMInterface):
 
         print(f"Loading local model: {self.model}...")
         
-        # Determine device
         device = "cuda" if torch.cuda.is_available() else "cpu"
         print(f"Using device: {device}")
 

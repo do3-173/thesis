@@ -43,12 +43,12 @@ class ExperimentRunner:
         self.results_dir = Path(config.experiment.results_dir)
         self.results_dir.mkdir(parents=True, exist_ok=True)
         
-        # Initialize components
+
         self.dataset_manager = DatasetManager(config.data.dataset_dir)
         self.llm_interface = None
         self.experiment_results = {}
         
-        # Setup random seed for reproducibility
+
         if hasattr(config.experiment, 'random_seed'):
             np.random.seed(config.experiment.random_seed)
     
@@ -61,7 +61,7 @@ class ExperimentRunner:
                     model=self.config.llm.model
                 )
                 
-                # Test connection
+
                 if self.llm_interface.test_connection():
                     print(f"LLM interface initialized successfully: {self.config.llm.provider}")
                 else:
@@ -97,7 +97,7 @@ class ExperimentRunner:
         """
         selectors = {}
         
-        # LLM-based selectors
+
         if self.config.methods.text_based.enabled and self.llm_interface:
             selectors['text_based'] = create_feature_selector(
                 'text_based', 
@@ -117,7 +117,7 @@ class ExperimentRunner:
                 **OmegaConf.to_container(self.config.methods.caafe, resolve=True)
             )
         
-        # Traditional methods
+
         if self.config.methods.traditional.mutual_info.enabled:
             selectors['mutual_info'] = create_feature_selector(
                 'traditional',
@@ -130,7 +130,7 @@ class ExperimentRunner:
                 method='random_forest'
             )
         
-        # MLP-based methods
+
         if self.config.methods.mlp_weights.enabled:
             selectors['mlp_weights'] = create_feature_selector(
                 'mlp_weights',
@@ -159,7 +159,7 @@ class ExperimentRunner:
         print("-" * 50)
         
         try:
-            # Load dataset
+
             ml_data = self.dataset_manager.prepare_for_ml(
                 dataset_name, 
                 source=self.config.data.source,
@@ -167,7 +167,7 @@ class ExperimentRunner:
                 random_state=self.config.experiment.random_seed
             )
             
-            # Get dataset info for LLM-based methods
+
             dataset_info = self.dataset_manager.get_dataset_info(
                 dataset_name, 
                 source=self.config.data.source
@@ -176,20 +176,20 @@ class ExperimentRunner:
             print(f"Dataset shape: {ml_data['X_train'].shape}")
             print(f"Task type: {dataset_info.get('metadata', {}).get('problem_type', 'Unknown')}")
             
-            # Create feature selectors
+
             selectors = self.create_feature_selectors()
             
             if not selectors:
                 print("No feature selectors available")
                 return {'error': 'No feature selectors available'}
             
-            # Initialize evaluator
+
             evaluator = FeatureSelectionEvaluator(
                 random_state=self.config.experiment.random_seed,
                 n_trials=self.config.evaluation.n_trials
             )
             
-            # Run feature selection methods
+
             selection_results = {}
             
             for method_name, selector in selectors.items():
@@ -198,9 +198,9 @@ class ExperimentRunner:
                 try:
                     start_time = time.time()
                     
-                    # Run feature selection
+
                     if method_name in ['text_based', 'llm4fs', 'caafe']:
-                        # LLM-based methods need dataset info
+
                         features = selector.select_features(
                             ml_data['X_train'], 
                             ml_data['y_train'],
@@ -208,14 +208,14 @@ class ExperimentRunner:
                             top_k=self.config.methods[method_name].top_k
                         )
                     elif method_name in ['mlp_weights', 'mlp_permutation']:
-                        # MLP methods
+
                         features = selector.select_features(
                             ml_data['X_train'], 
                             ml_data['y_train'],
                             top_k=self.config.methods[method_name].top_k
                         )
                     else:
-                        # Traditional methods
+
                         features = selector.select_features(
                             ml_data['X_train'], 
                             ml_data['y_train'],
@@ -225,13 +225,13 @@ class ExperimentRunner:
                     selection_time = time.time() - start_time
                     
                     if features:
-                        # Extract feature names
+
                         selected_features = selector.get_feature_names(features)
                         
                         print(f"Selected {len(selected_features)} features in {selection_time:.2f}s")
                         print(f"Features: {selected_features[:5]}{'...' if len(selected_features) > 5 else ''}")
                         
-                        # Evaluate selected features
+
                         eval_result = evaluator.evaluate_method(
                             method_name,
                             selected_features,
@@ -255,7 +255,7 @@ class ExperimentRunner:
                     print(f"Error in {method_name}: {e}")
                     selection_results[method_name] = {'error': str(e)}
             
-            # Create comparison
+
             comparison_df = evaluator.compare_methods()
             
             return {
@@ -292,7 +292,7 @@ class ExperimentRunner:
         print(f"Running AutoGluon benchmark on: {dataset_name}")
         
         try:
-            # Load dataset for benchmark
+
             ml_data = self.dataset_manager.prepare_for_ml(
                 dataset_name,
                 source=self.config.data.source,
@@ -300,14 +300,14 @@ class ExperimentRunner:
                 random_state=self.config.experiment.random_seed
             )
             
-            # Prepare data for AutoGluon benchmark
+
             train_df = ml_data['X_train'].copy()
             train_df[ml_data['target_name']] = ml_data['y_train']
             
             test_df = ml_data['X_test'].copy()
             test_df[ml_data['target_name']] = ml_data['y_test']
             
-            # Create dataset info for benchmark
+
             dataset_info = {
                 'label_columns': [ml_data['target_name']],
                 'feature_columns': ml_data['feature_names'],
@@ -316,7 +316,7 @@ class ExperimentRunner:
                 'feature_types': ['numeric'] * len(ml_data['feature_names'])  # Simplified
             }
             
-            # Initialize and run benchmark
+
             benchmark = AutoGluonBenchmark(
                 time_limit=self.config.benchmark.autogluon.time_limit,
                 preset=self.config.benchmark.autogluon.preset
@@ -345,19 +345,19 @@ class ExperimentRunner:
             results: Results dictionary to save
             filename: Name of the output file
         """
-        # Save as pickle for complete object preservation
+
         pickle_path = self.results_dir / f"{filename}.pkl"
         with open(pickle_path, 'wb') as f:
             pickle.dump(results, f)
         
-        # Save summary as JSON for readability
+
         summary = self.create_results_summary(results)
         json_path = self.results_dir / f"{filename}_summary.json"
         
         import json
         from omegaconf import OmegaConf
         
-        # Convert OmegaConf objects to regular Python objects for JSON serialization
+
         def convert_omegaconf(obj):
             if isinstance(obj, dict):
                 return {str(k): convert_omegaconf(v) for k, v in obj.items()}
@@ -397,12 +397,12 @@ class ExperimentRunner:
                 summary['dataset_summaries'][dataset_name] = {'error': dataset_results['error']}
                 continue
             
-            # Feature selection summary
+
             if 'selection_results' in dataset_results:
                 methods = list(dataset_results['selection_results'].keys())
                 summary['methods_used'].extend(methods)
                 
-                # Best method based on evaluation
+
                 comparison = dataset_results.get('evaluation_comparison', {})
                 if comparison and 'Method' in comparison and 'Mean Score' in comparison:
                     best_method = None
@@ -426,7 +426,7 @@ class ExperimentRunner:
                         'n_features_original': dataset_results.get('ml_data_shapes', {}).get('X_train', [0, 0])[1]
                     }
         
-        # Remove duplicates from methods_used
+
         summary['methods_used'] = list(set(summary['methods_used']))
         
         return summary
@@ -436,14 +436,14 @@ class ExperimentRunner:
         print("Starting LLM Feature Engineering Experiments")
         print("=" * 60)
         
-        # Setup LLM interface
+
         self.setup_llm_interface()
         
-        # Get datasets to process
+
         datasets = self.get_datasets_to_process()
         print(f"Processing {len(datasets)} datasets: {datasets}")
         
-        # Run feature selection experiments
+
         if self.config.experiment.run_feature_selection:
             print("\nRunning Feature Selection Experiments")
             print("-" * 40)
@@ -452,7 +452,7 @@ class ExperimentRunner:
                 result = self.run_feature_selection_experiment(dataset_name)
                 self.experiment_results[dataset_name] = result
                 
-                # Save intermediate results
+
                 if self.config.experiment.save_intermediate:
                     timestamp = int(time.time())
                     self.save_results(
@@ -460,7 +460,7 @@ class ExperimentRunner:
                         f"intermediate_{dataset_name}_{timestamp}"
                     )
         
-        # Run AutoGluon benchmarks
+
         if self.config.experiment.run_autogluon_benchmark:
             print("\nRunning AutoGluon Benchmarks")
             print("-" * 40)
@@ -470,14 +470,14 @@ class ExperimentRunner:
                 result = self.run_autogluon_benchmark(dataset_name)
                 benchmark_results[dataset_name] = result
             
-            # Add benchmark results to main results
+
             for dataset_name in benchmark_results:
                 if dataset_name in self.experiment_results:
                     self.experiment_results[dataset_name]['autogluon_benchmark'] = benchmark_results[dataset_name]
                 else:
                     self.experiment_results[dataset_name] = {'autogluon_benchmark': benchmark_results[dataset_name]}
         
-        # Save final results
+
         timestamp = int(time.time())
         self.save_results(self.experiment_results, f"final_results_{timestamp}")
         
@@ -498,7 +498,7 @@ def main(cfg: DictConfig) -> None:
     runner = ExperimentRunner(cfg)
     results = runner.run_experiments()
     
-    # Print summary
+
     summary = runner.create_results_summary(results)
     print("\nExperiment Summary:")
     print("-" * 20)

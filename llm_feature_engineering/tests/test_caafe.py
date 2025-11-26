@@ -4,7 +4,7 @@ Test CAAFE with Claude on a small dataset.
 """
 import sys
 from pathlib import Path
-sys.path.append(str(Path(__file__).parent / "src"))
+sys.path.append(str(Path(__file__).parent.parent / "src"))
 
 import pandas as pd
 import numpy as np
@@ -14,13 +14,13 @@ from sklearn.model_selection import train_test_split
 from llm_feature_engineering.llm_interface import create_llm_interface
 from llm_feature_engineering.caafe import CAAFESelector
 
-# Enable logging to see what's happening
+
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
 def test_caafe():
     print("Testing CAAFE with Claude on Breast Cancer dataset...")
     
-    # Load a simple dataset
+
     data = load_breast_cancer()
     X = pd.DataFrame(data.data, columns=data.feature_names)
     y = pd.Series(data.target)
@@ -32,10 +32,10 @@ def test_caafe():
     print(f"\nDataset shape: {X_small.shape}")
     print(f"Features: {X_small.columns.tolist()}")
     
-    # Create Claude interface
+
     llm = create_llm_interface(provider="anthropic", model="claude-3-haiku-20240307")
     
-    # Create CAAFE selector with few iterations for testing
+
     caafe = CAAFESelector(
         llm_interface=llm,
         dataset_description="Breast cancer diagnosis dataset with tumor measurements",
@@ -47,7 +47,7 @@ def test_caafe():
     print("Starting CAAFE feature engineering...")
     print("="*60)
     
-    # Run CAAFE
+
     selected_features = caafe.select_features(X_small, y_small)
     
     print("\n" + "="*60)

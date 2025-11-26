@@ -134,10 +134,10 @@ class DatasetManager:
         if not csv_path.exists():
             raise FileNotFoundError(f"Dataset {dataset_name} not found at {csv_path}")
         
-        # Load dataset
+
         df = pd.read_csv(csv_path)
         
-        # Load metadata if available
+
         metadata = {}
         if metadata_path.exists():
             with open(metadata_path, 'r') as f:
@@ -163,7 +163,7 @@ class DatasetManager:
         train_encoded = train_df.copy()
         test_encoded = test_df.copy()
         
-        # Identify categorical columns
+
         categorical_cols = [col for col in train_df.columns if col.startswith('cat_')]
         
         if not categorical_cols:
@@ -172,7 +172,7 @@ class DatasetManager:
         print(f"Encoding {len(categorical_cols)} categorical features...")
         
         for col in categorical_cols:
-            # Check if column is already numeric
+
             if pd.api.types.is_numeric_dtype(train_df[col]):
                 continue
                 
@@ -183,7 +183,7 @@ class DatasetManager:
             all_values = pd.concat([train_df[col], test_df[col]], ignore_index=True)
             le.fit(all_values)
             
-            # Transform both datasets
+
             train_encoded[col] = le.transform(train_df[col])
             test_encoded[col] = le.transform(test_df[col])
             

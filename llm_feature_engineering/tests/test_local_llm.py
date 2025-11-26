@@ -3,8 +3,8 @@ import os
 import sys
 from pathlib import Path
 
-# Add src to path
-sys.path.append(str(Path(__file__).parent / "src"))
+
+sys.path.append(str(Path(__file__).parent.parent / "src"))
 
 from llm_feature_engineering.llm_interface import create_llm_interface
 

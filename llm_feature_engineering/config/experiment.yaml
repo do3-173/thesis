@@ -3,8 +3,8 @@
 
 defaults:
   - data: talent_datasets
-  - llm: anthropic
-  - methods: llm4fs_only
+  - llm: huggingface
+  - methods: reproduction
   - evaluation: llm4fs_evaluation
   - benchmark: disabled
   - _self_
@@ -12,16 +12,34 @@ defaults:
 # Override for LLM4FS reproduction on all 4 benchmark datasets
 data:
   datasets:
+    - "BNG(breast-w)"
+    - "BNG(tic-tac-toe)"
+    - "adult"
     - "bank"
+    - "car-evaluation"
+    - "cmc"
+    - "cpu_act"
     - "credit-g"
-    - "pima-diabetes"
+    - "electricity"
+    - "eye_movements"
     - "give-me-some-credit"
+    - "heart-disease"
+    - "jungle_chess_2pcs_raw_endgame_complete"
+    - "kc1"
+    - "mfeat-factors"
+    - "pc1"
+    - "phoneme"
+    - "pima-diabetes"
+    - "pol"
+    - "splice"
+    - "vehicle"
+    - "wine"
 
 # Experiment settings
 experiment:
-  name: "llm4fs_all_datasets_experiment"
-  description: "LLM4FS feature selection on all 4 benchmark datasets using TALENT"
-  results_dir: "experiments/llm4fs_all_datasets/results"
+  name: "reproduction_experiment"
+  description: "Reproduction of LLM4FS and CAAFE on benchmark datasets using Open Weights LLM"
+  results_dir: "outputs"
   random_seed: 42
   
   # Experiment phases to run

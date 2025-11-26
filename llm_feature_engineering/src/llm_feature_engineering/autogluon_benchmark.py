@@ -178,14 +178,14 @@ class AutoGluonBenchmark:
             problem_type = self.convert_problem_type(dataset_info['problem_type'], train_data[label_col])
             metric = dataset_info['metric']
         
-        # Remove text columns
+
         text_columns = self.identify_text_columns(dataset_info)
         
         train_no_text = train_data.drop(columns=text_columns)
         test_no_text = test_data.drop(columns=text_columns)
         
         try:
-            # Train AutoGluon
+
             predictor = TabularPredictor(
                 label=label_col,
                 problem_type=problem_type,
@@ -201,10 +201,10 @@ class AutoGluonBenchmark:
             )
             train_time = time.time() - start_time
             
-            # Make predictions
+
             predictions = predictor.predict(test_no_text)
             
-            # Calculate metric
+
             true_labels = test_data[label_col]
             score = self.calculate_metric(true_labels, predictions, metric, problem_type)
             
@@ -237,7 +237,7 @@ class AutoGluonBenchmark:
             
         print("Running AG-Stack + N-Gram...")
         
-        # Get dataset metadata
+
         if hasattr(dataset_info, 'label_columns'):
             label_col = dataset_info.label_columns[0]
             problem_type = self.convert_problem_type(dataset_info.problem_type, train_data[label_col])
@@ -248,7 +248,7 @@ class AutoGluonBenchmark:
             metric = dataset_info['metric']
         
         try:
-            # Train AutoGluon with N-Gram featurization (handled automatically)
+
             predictor = TabularPredictor(
                 label=label_col,
                 problem_type=problem_type,
@@ -264,10 +264,10 @@ class AutoGluonBenchmark:
             )
             train_time = time.time() - start_time
             
-            # Make predictions
+
             predictions = predictor.predict(test_data)
             
-            # Calculate metric
+
             true_labels = test_data[label_col]
             score = self.calculate_metric(true_labels, predictions, metric, problem_type)
             
@@ -297,7 +297,7 @@ class AutoGluonBenchmark:
         """
         print("Running Random Forest + TF-IDF...")
         
-        # Get dataset metadata
+
         if hasattr(dataset_info, 'label_columns'):
             label_col = dataset_info.label_columns[0]
             problem_type = self.convert_problem_type(dataset_info.problem_type, train_data[label_col])
@@ -309,14 +309,14 @@ class AutoGluonBenchmark:
             metric = dataset_info['metric']
             feature_columns = dataset_info['feature_columns']
         
-        # Identify text and non-text columns
+
         text_columns = self.identify_text_columns(dataset_info)
         numeric_columns = [col for col in feature_columns if col not in text_columns]
         
         try:
             start_time = time.time()
             
-            # Prepare text features
+
             if text_columns:
                 # Combine all text columns into one
                 train_text = train_data[text_columns].fillna('').apply(
@@ -329,7 +329,7 @@ class AutoGluonBenchmark:
                 train_tfidf = tfidf.fit_transform(train_text).toarray()
                 test_tfidf = tfidf.transform(test_text).toarray()
                 
-                # Create TF-IDF feature DataFrames
+
                 tfidf_feature_names = [f'tfidf_{i}' for i in range(train_tfidf.shape[1])]
                 train_tfidf_df = pd.DataFrame(train_tfidf, columns=tfidf_feature_names, 
                                             index=train_data.index)
@@ -339,7 +339,7 @@ class AutoGluonBenchmark:
                 train_tfidf_df = pd.DataFrame(index=train_data.index)
                 test_tfidf_df = pd.DataFrame(index=test_data.index)
             
-            # Prepare numeric features with basic feature engineering
+
             if numeric_columns:
                 train_numeric = train_data[numeric_columns].fillna(0)
                 test_numeric = test_data[numeric_columns].fillna(0)
@@ -358,15 +358,15 @@ class AutoGluonBenchmark:
                 train_numeric = pd.DataFrame(index=train_data.index)
                 test_numeric = pd.DataFrame(index=test_data.index)
             
-            # Combine all features
+
             x_train = pd.concat([train_numeric, train_tfidf_df], axis=1)
             x_test = pd.concat([test_numeric, test_tfidf_df], axis=1)
             
-            # Prepare labels
+
             y_train = train_data[label_col]
             y_test = test_data[label_col]
             
-            # Train model based on problem type
+
             if problem_type in ['binary', 'multiclass']:
                 # Handle categorical labels
                 if y_train.dtype == 'object':
@@ -377,7 +377,7 @@ class AutoGluonBenchmark:
                     y_train_encoded = y_train
                     y_test_encoded = y_test
                 
-                # Train Random Forest Classifier
+
                 rf = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1)
                 rf.fit(x_train, y_train_encoded)
                 
@@ -389,7 +389,7 @@ class AutoGluonBenchmark:
                     predictions = rf.predict(x_test)
                     true_labels = y_test_encoded
             else:
-                # Regression
+
                 rf = RandomForestRegressor(n_estimators=100, random_state=42, n_jobs=-1)
                 rf.fit(x_train, y_train)
                 predictions = rf.predict(x_test)
@@ -397,7 +397,7 @@ class AutoGluonBenchmark:
             
             train_time = time.time() - start_time
             
-            # Calculate metric
+
             score = self.calculate_metric(true_labels, predictions, metric, problem_type)
             
             return {
@@ -460,7 +460,7 @@ class AutoGluonBenchmark:
         print("Running full tabular benchmark")
         print("=" * 60)
         
-        # Load data
+
         if dataset_name:
             train_df, test_df, ds_info = self.prepare_data_from_registry(dataset_name)
             print(f"Dataset: {dataset_name}")
@@ -472,7 +472,7 @@ class AutoGluonBenchmark:
         
         results = []
         
-        # Run AG-Stack without text
+
         try:
             result1 = self.run_ag_stack_no_text(train_df, test_df, ds_info)
             if 'error' not in result1:
@@ -483,7 +483,7 @@ class AutoGluonBenchmark:
         except Exception as e:
             print(f"AG-Stack (no text) failed: {e}")
         
-        # Run AG-Stack with N-Gram
+
         try:
             result2 = self.run_ag_stack_with_ngram(train_df, test_df, ds_info)
             if 'error' not in result2:
@@ -494,7 +494,7 @@ class AutoGluonBenchmark:
         except Exception as e:
             print(f"AG-Stack + N-Gram failed: {e}")
         
-        # Run Random Forest with TF-IDF
+
         try:
             result3 = self.run_random_forest_tfidf(train_df, test_df, ds_info)
             if 'error' not in result3:
@@ -505,7 +505,7 @@ class AutoGluonBenchmark:
         except Exception as e:
             print(f"Random Forest + TF-IDF failed: {e}")
         
-        # Store results
+
         dataset_key = dataset_name or 'custom'
         self.results[dataset_key] = results
         

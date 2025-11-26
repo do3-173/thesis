@@ -22,10 +22,10 @@ def extract_detailed_results(pickle_path):
     for dataset_name, dataset_data in data.items():
         print(f"\nProcessing {dataset_name.upper()}...")
         
-        # Extract basic info
+
         n_features = dataset_data.get('ml_data_shapes', {}).get('X_train', [0, 0])[1]
         
-        # Extract feature selection results
+
         if 'selection_results' in dataset_data:
             selection_results = dataset_data['selection_results']
             
@@ -37,11 +37,11 @@ def extract_detailed_results(pickle_path):
                         print(f"    Error: {method_data['error']}")
                         continue
                     
-                    # Get selected features
+
                     selected_features = method_data.get('features', [])
                     n_selected = len(selected_features) if isinstance(selected_features, list) else 0
                     
-                    # Extract evaluation results from model_aggregates
+
                     if 'evaluation' in method_data:
                         eval_data = method_data['evaluation']
                         
@@ -72,7 +72,7 @@ def extract_detailed_results(pickle_path):
                                     })
                                     print(f"    {classifier}: Mean={mean_score:.4f} (±{std_score:.4f})")
         
-        # Extract AutoGluon results
+
         if 'autogluon_benchmark' in dataset_data:
             ag_results = dataset_data['autogluon_benchmark']
             
@@ -109,14 +109,14 @@ def create_comprehensive_analysis(df, save_dir):
     fig, axes = plt.subplots(3, 2, figsize=(16, 18))
     fig.suptitle('Comprehensive Feature Selection Analysis', fontsize=16, fontweight='bold')
     
-    # 1. Performance heatmap
+
     ax1 = axes[0, 0]
     pivot_data = df.pivot_table(values='Mean_Score', index='Dataset', columns='Method', aggfunc='max', fill_value=0)
     sns.heatmap(pivot_data, annot=True, fmt='.3f', cmap='RdYlGn', ax=ax1, cbar_kws={'label': 'Score'})
     ax1.set_title('Performance Heatmap (Best Mean Score per Method)')
     ax1.tick_params(axis='x', rotation=45)
     
-    # 2. Method type comparison
+
     ax2 = axes[0, 1]
     method_stats = df.groupby('Result_Type')['Mean_Score'].agg(['mean', 'std', 'count'])
     bars = ax2.bar(method_stats.index, method_stats['mean'], yerr=method_stats['std'], 
@@ -128,7 +128,7 @@ def create_comprehensive_analysis(df, save_dir):
         ax2.text(bar.get_x() + bar.get_width()/2, height + 0.01, 
                 f'{row["mean"]:.3f}\n(n={row["count"]})', ha='center', va='bottom')
     
-    # 3. Feature selection efficiency
+
     ax3 = axes[1, 0]
     fs_data = df[df['Result_Type'] == 'Feature_Selection']
     if not fs_data.empty:
@@ -143,7 +143,7 @@ def create_comprehensive_analysis(df, save_dir):
         cbar = fig.colorbar(scatter, ax=ax3)
         cbar.set_label('Dataset')
     
-    # 4. Best method per dataset
+
     ax4 = axes[1, 1]
     best_methods = df.loc[df.groupby('Dataset')['Mean_Score'].idxmax()]
     method_counts = best_methods['Method'].value_counts()
@@ -158,7 +158,7 @@ def create_comprehensive_analysis(df, save_dir):
     for i, (method, count) in enumerate(method_counts.items()):
         ax4.text(i, count + 0.05, str(count), ha='center', va='bottom')
     
-    # 5. Performance distribution by classifier
+
     ax5 = axes[2, 0]
     classifier_data = df[df['Result_Type'] == 'Feature_Selection']
     if not classifier_data.empty:
@@ -171,7 +171,7 @@ def create_comprehensive_analysis(df, save_dir):
         ax5.set_ylabel('Frequency')
         ax5.legend()
     
-    # 6. Dataset complexity analysis
+
     ax6 = axes[2, 1]
     dataset_complexity = df.groupby('Dataset').agg({
         'Original_Features': 'first',
@@ -242,7 +242,7 @@ def generate_detailed_report(df, save_dir):
     report.append(f"Total experiments: {len(df)}")
     report.append("")
     
-    # Overall statistics
+
     report.append("OVERALL PERFORMANCE STATISTICS")
     report.append("-" * 60)
     report.append(f"Mean score: {df['Mean_Score'].mean():.4f} ± {df['Mean_Score'].std():.4f}")
@@ -252,7 +252,7 @@ def generate_detailed_report(df, save_dir):
     report.append(f"Score range: {df['Mean_Score'].max() - df['Mean_Score'].min():.4f}")
     report.append("")
     
-    # Top performing methods
+
     report.append("TOP PERFORMING METHODS")
     report.append("-" * 60)
     method_performance = df.groupby('Method')['Mean_Score'].agg(['count', 'mean', 'std', 'max']).sort_values('mean', ascending=False)
@@ -262,7 +262,7 @@ def generate_detailed_report(df, save_dir):
         report.append(f"    Best: {stats['max']:.4f}")
         report.append("")
     
-    # Dataset analysis
+
     report.append("DATASET PERFORMANCE ANALYSIS")
     report.append("-" * 60)
     dataset_stats = df.groupby('Dataset').agg({
@@ -281,7 +281,7 @@ def generate_detailed_report(df, save_dir):
         report.append(f"  Mean score: {stats['Mean_Score_mean']:.4f} ± {stats['Mean_Score_std']:.4f}")
         report.append("")
     
-    # Method comparison
+
     report.append("METHOD COMPARISON")
     report.append("-" * 60)
     best_per_dataset = df.loc[df.groupby('Dataset')['Mean_Score'].idxmax()]
@@ -321,7 +321,7 @@ def generate_executive_summary(df):
     print("=" * 80)
     print()
     
-    # Key metrics
+
     print("KEY METRICS")
     print("-" * 40)
     print(f"Total experiments conducted: {len(df)}")
@@ -332,7 +332,7 @@ def generate_executive_summary(df):
     print(f"Average performance: {df['Mean_Score'].mean():.3f} ± {df['Mean_Score'].std():.3f}")
     print()
     
-    # Best performing methods
+
     print("TOP PERFORMING METHODS")
     print("-" * 40)
     method_performance = df.groupby('Method')['Mean_Score'].agg(['mean', 'std', 'max']).sort_values('mean', ascending=False)
@@ -340,7 +340,7 @@ def generate_executive_summary(df):
         print(f"{i}. {method}: {stats['mean']:.3f} ± {stats['std']:.3f} (best: {stats['max']:.3f})")
     print()
     
-    # Dataset results
+
     print("DATASET RESULTS")
     print("-" * 40)
     dataset_performance = df.groupby('Dataset').agg({
@@ -352,7 +352,7 @@ def generate_executive_summary(df):
         print(f"{dataset}: {stats['Mean_Score']:.3f} ({stats['Original_Features']} features)")
     print()
     
-    # Method winners per dataset
+
     print("WINNING METHODS PER DATASET")
     print("-" * 40)
     best_per_dataset = df.loc[df.groupby('Dataset')['Mean_Score'].idxmax()]
@@ -360,7 +360,7 @@ def generate_executive_summary(df):
         print(f"{row['Dataset']}: {row['Method']} ({row['Classifier']}) - {row['Mean_Score']:.3f}")
     print()
     
-    # Key findings
+
     print("KEY FINDINGS")
     print("-" * 40)
     
@@ -382,7 +382,7 @@ def generate_executive_summary(df):
     
     print()
     
-    # Recommendations
+
     print("RECOMMENDATIONS")
     print("-" * 40)
     print(f"1. Use {best_method} for maximum performance")
@@ -408,7 +408,7 @@ def run_analysis():
     print("=" * 80)
     print()
     
-    # Check if experiment results exist
+
     experiment_dirs = list(Path("experiments").glob("*/results/final_results_*.pkl"))
     if not experiment_dirs:
         print("No experiment results found!")
@@ -417,7 +417,7 @@ def run_analysis():
     
     print(f"Found {len(experiment_dirs)} experiment result(s)")
     
-    # Find the pickle file with the most complete data
+
     best_pickle_path = None
     max_score = 0
     
@@ -467,15 +467,15 @@ def run_analysis():
     print(f"   - Classifiers: {df['Classifier'].nunique()}")
     print(f"   - Result types: {df['Result_Type'].unique()}")
     
-    # Create visualizations
+
     print("\nCreating comprehensive visualizations...")
     create_comprehensive_analysis(df, output_dir)
     
-    # Generate detailed report
+
     print("\nGenerating detailed report...")
     generate_detailed_report(df, output_dir)
     
-    # Generate executive summary
+
     generate_executive_summary(df)
     
     print("\nAnalysis complete!")
