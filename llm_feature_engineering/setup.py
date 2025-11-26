@@ -19,8 +19,12 @@ setup(
         "python-dotenv>=0.19.0",
         "matplotlib>=3.5.0",
         "seaborn>=0.11.0",
-        "autogluon.tabular>=0.8.0",
-        "auto-mm-bench",
+        "transformers>=4.40.0",
+        "accelerate>=0.27.0",
+        "bitsandbytes>=0.43.0",
+        "lightgbm>=4.0.0",
+        "featuretools>=1.28.0",
+        "tqdm>=4.65.0",
     ],
     extras_require={
         "dev": [

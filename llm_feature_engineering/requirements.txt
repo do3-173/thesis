@@ -12,28 +12,33 @@ anthropic>=0.7.0
 openai>=1.0.0
 python-dotenv>=0.19.0
 
-# Local LLM inference (HuggingFace)
+# Local LLM inference (HuggingFace) - for running Qwen-7B on 4090
 transformers>=4.40.0
-torch>=2.0.0
-accelerate>=0.27.0  # For efficient model loading and device_map
+accelerate>=0.27.0
+bitsandbytes>=0.43.0  # For 4-bit quantization on 24GB GPUs
+sentencepiece>=0.1.99
+tokenizers>=0.15.0
 
 # Downstream Models - Required for experiments
 lightgbm>=4.0.0
 
-# AutoGluon (optional - for benchmark)
-autogluon.tabular>=0.8.0
-
-# Traditional AutoML Feature Engineering (optional)
+# Traditional AutoML Feature Engineering
 featuretools>=1.28.0
+autogluon.tabular>=0.8.0  # For AutoGluon FE (Loris requirement)
+# auto-sklearn>=0.15.0  # Linux only - install separately, see below
 
-# Auto-sklearn (optional - Linux only, requires specific setup)
-# auto-sklearn>=0.15.0  # Uncomment on Linux with proper setup
-
-# TALENT benchmark (optional)
-# Note: Install manually if needed
+# Utilities
+tqdm>=4.65.0
 
 # Development dependencies (optional)
 pytest>=7.0.0
 black>=22.0.0
 flake8>=4.0.0
 mypy>=0.950
+
+# Note: PyTorch should be installed separately with CUDA support:
+# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+
+# Optional (heavy dependencies, install separately if needed):
+# autogluon.tabular>=0.8.0
+# auto-sklearn>=0.15.0  # Linux only

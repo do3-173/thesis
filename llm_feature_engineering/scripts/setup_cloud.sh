@@ -12,17 +12,44 @@ echo "Target: Local open-weight models (no API keys needed)"
 echo "Includes: TALENT, AutoGluon, Auto-sklearn, Featuretools"
 echo ""
 
-# Check GPU
-echo "Checking GPU..."
-nvidia-smi || echo "WARNING: No NVIDIA GPU detected!"
-
 # Update system
 echo "Updating system..."
 apt-get update -qq
 
 # Install system dependencies (including swig for auto-sklearn)
 echo "Installing system dependencies..."
-apt-get install -y -qq build-essential python3-dev git curl wget unzip swig libgomp1
+apt-get install -y -qq build-essential python3-dev python3-pip python3-venv git curl wget unzip swig libgomp1
+
+# Check if NVIDIA driver is installed
+if ! command -v nvidia-smi &> /dev/null; then
+    echo ""
+    echo "WARNING: nvidia-smi not found. Installing NVIDIA drivers and CUDA..."
+    echo "This may take 10-15 minutes..."
+    echo ""
+    
+    # Install NVIDIA drivers and CUDA toolkit
+    apt-get install -y -qq software-properties-common
+    add-apt-repository -y ppa:graphics-drivers/ppa
+    apt-get update -qq
+    
+    # Install CUDA toolkit (includes drivers)
+    wget -q https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
+    dpkg -i cuda-keyring_1.1-1_all.deb
+    apt-get update -qq
+    apt-get install -y -qq cuda-toolkit-12-1
+    
+    # Add CUDA to PATH
+    echo 'export PATH=/usr/local/cuda-12.1/bin:$PATH' >> ~/.bashrc
+    echo 'export LD_LIBRARY_PATH=/usr/local/cuda-12.1/lib64:$LD_LIBRARY_PATH' >> ~/.bashrc
+    export PATH=/usr/local/cuda-12.1/bin:$PATH
+    export LD_LIBRARY_PATH=/usr/local/cuda-12.1/lib64:$LD_LIBRARY_PATH
+    
+    echo "CUDA installation complete. You may need to reboot for drivers to take effect."
+fi
+
+# Check GPU
+echo "Checking GPU..."
+nvidia-smi || echo "WARNING: No NVIDIA GPU detected! GPU may require reboot."
 
 # Upgrade pip
 echo "Upgrading pip..."
@@ -33,8 +60,8 @@ echo "Installing PyTorch with CUDA..."
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 
 # Verify CUDA
-python -c "import torch; print(f'PyTorch {torch.__version__}, CUDA available: {torch.cuda.is_available()}')"
-python -c "import torch; print(f'GPU: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else \"None\"}')"
+python -c "import torch; print(f'PyTorch {torch.__version__}, CUDA available: {torch.cuda.is_available()}')" || echo "PyTorch CUDA check failed"
+python -c "import torch; print(f'GPU: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else \"None\"}')" || true
 
 # Install core dependencies
 echo "Installing core dependencies..."

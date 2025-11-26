@@ -2,23 +2,45 @@
 
 This guide explains how to run the LLM Feature Engineering experiments on [Vast.ai](https://vast.ai/) using **local open-weight models** (no API keys needed).
 
-## Quick Start (Docker - Recommended)
+## SSH Connection
+
+Connect to your Vast.ai instance using SSH with port forwarding for Jupyter/monitoring:
+
+```bash
+# Option 1: Using Vast.ai hostname
+ssh -p 12329 root@ssh7.vast.ai -L 8080:localhost:8080
+
+# Option 2: Using direct IP
+ssh -p 27647 root@149.86.66.214 -L 8080:localhost:8080
+```
+
+**Note**: Replace the port number and hostname/IP with your actual instance details from Vast.ai console.
+
+---
+
+## Quick Start (Docker - Recommended for Easy Setup)
 
 ### 1. Create a Vast.ai Instance
 
 1. Go to [vast.ai](https://cloud.vast.ai/)
 2. Select a GPU instance:
-   - **Recommended**: A100-80GB (~$2.50/hr) or H100-80GB (~$3.50/hr)
-   - For smaller experiments: RTX 4090/3090 (24GB, ~$0.50/hr)
+   - **For Qwen-7B**: RTX 4090/3090 (24GB, ~$0.50/hr) ✅ Recommended
+   - **For larger models**: A100-80GB (~$2.50/hr) or H100-80GB (~$3.50/hr)
 3. Choose image: `nvidia/cuda:12.1.1-cudnn8-devel-ubuntu22.04`
 4. Set disk space: **150GB minimum** (for model weights + datasets)
 5. Launch the instance
 
-### 2. Clone and Build Docker
+### 2. SSH and Setup with Docker
 
 ```bash
-# Clone the repository
-git clone https://github.com/your-username/thesis.git
+# SSH into the instance
+ssh -p <PORT> root@<HOST> -L 8080:localhost:8080
+
+# Navigate to workspace
+cd /workspace
+
+# Clone repository
+git clone https://github.com/do3-173/thesis.git
 cd thesis/llm_feature_engineering
 
 # Build and start Docker container
@@ -28,7 +50,99 @@ docker-compose up -d
 docker exec -it llm-fe-experiments bash
 ```
 
-### 3. Download TALENT Datasets
+### 3. Run Tests Inside Container
+
+```bash
+# Inside the container
+
+# Quick test (no LLM, just baseline + featuretools)
+python scripts/run_comparison_table.py --datasets electricity --trials 1 --skip-llm
+
+# Rigorous test with Qwen-7B (optimized for 4090 24GB)
+python scripts/run_comparison_table.py \
+    --datasets electricity phoneme kc1 \
+    --trials 3 \
+    --llm-provider huggingface \
+    --llm-model Qwen/Qwen2.5-7B-Instruct
+
+# Full benchmark (5 datasets × 3 trials)
+python scripts/run_comparison_table.py \
+    --datasets electricity phoneme kc1 splice vehicle \
+    --trials 3 \
+    --llm-provider huggingface \
+    --llm-model Qwen/Qwen2.5-7B-Instruct
+```
+
+---
+
+## Alternative: Manual Setup (Without Docker)
+
+### 1. Create a Vast.ai Instance
+
+1. Go to [vast.ai](https://cloud.vast.ai/)
+2. Select a GPU instance:
+   - **For Qwen-7B**: RTX 4090/3090 (24GB, ~$0.50/hr) ✅ Recommended
+   - **For larger models**: A100-80GB (~$2.50/hr) or H100-80GB (~$3.50/hr)
+3. Choose image: `nvidia/cuda:12.1.1-cudnn8-devel-ubuntu22.04`
+4. Set disk space: **150GB minimum** (for model weights + datasets)
+5. Launch the instance
+
+### 2. SSH and Setup
+
+```bash
+# SSH into the instance
+ssh -p <PORT> root@<HOST> -L 8080:localhost:8080
+
+# Navigate to workspace
+cd /workspace
+
+# Clone repository
+git clone https://github.com/do3-173/thesis.git
+cd thesis/llm_feature_engineering
+
+# Install PyTorch (CUDA 12.1)
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+
+# Install dependencies from requirements.txt
+pip install -r requirements.txt
+
+# Install package
+pip install -e .
+```
+
+### 3. Test Installation
+
+```bash
+# Quick test (no LLM, just baseline + featuretools)
+python3 scripts/run_comparison_table.py --datasets electricity --trials 1 --skip-llm
+
+# Rigorous test with Qwen-7B (optimized for 4090 24GB)
+python3 scripts/run_comparison_table.py \
+    --datasets electricity phoneme kc1 \
+    --trials 3 \
+    --llm-provider huggingface \
+    --llm-model Qwen/Qwen2.5-7B-Instruct
+```
+
+---
+
+## Alternative: Using Setup Script
+
+### 1. Clone and Build Docker
+
+```bash
+# Clone the repository
+git clone https://github.com/do3-173/thesis.git
+cd thesis/llm_feature_engineering
+
+# Build and start Docker container
+docker-compose up -d
+
+# Enter the container
+docker exec -it llm-fe-experiments bash
+```
+
+### 2. Download TALENT Datasets
 
 ```bash
 # Inside the container
@@ -38,7 +152,7 @@ chmod +x scripts/download_talent_datasets.sh
 
 Or manually download from [Google Drive](https://drive.google.com/drive/folders/1j1zt3zQIo8dO6vkO-K-WE6pSrl71bf0z) and extract to `/workspace/datasets/TALENT/`.
 
-### 4. Run Experiments
+### 3. Run Experiments
 
 ```bash
 # Quick test (no LLM, just baseline + featuretools)
@@ -58,7 +172,7 @@ python scripts/run_comparison_table.py \
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/thesis.git
+git clone https://github.com/do3-173/thesis.git
 cd thesis/llm_feature_engineering
 
 # Run setup script
@@ -71,7 +185,9 @@ chmod +x scripts/setup_cloud.sh
 
 ---
 
-## TALENT Datasets
+## Running Experiments
+
+### Quick Test (No LLM)
 
 The TALENT benchmark includes 300+ tabular datasets organized in:
 - **basic_benchmark**: 300 datasets (120 binary, 80 multi-class, 100 regression)

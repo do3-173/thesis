@@ -2,7 +2,10 @@
 # Includes: TALENT datasets, AutoGluon, Auto-sklearn, Local LLM inference
 # Target: NVIDIA GPU with 24GB+ VRAM (80GB recommended for 70B models)
 
+# Option 1: CUDA 12.1 + Ubuntu 22.04 (recommended)
 FROM nvidia/cuda:12.1.1-cudnn8-devel-ubuntu22.04
+# Option 2: If you need CUDA 12.0 + Ubuntu 20.04, uncomment below:
+# FROM nvidia/cuda:12.0.1-devel-ubuntu20.04
 
 # Prevent interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
@@ -11,9 +14,9 @@ ENV TZ=Etc/UTC
 # System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
-    python3.10 \
-    python3.10-dev \
-    python3.10-venv \
+    python3 \
+    python3-dev \
+    python3-venv \
     python3-pip \
     git \
     curl \
@@ -25,9 +28,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libomp-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Make python3.10 the default python
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.10 1 \
-    && update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1
+# Make python3 the default python
+RUN ln -sf /usr/bin/python3 /usr/bin/python
 
 # Upgrade pip
 RUN pip install --upgrade pip setuptools wheel
@@ -47,36 +49,19 @@ RUN pip install \
     matplotlib>=3.7.0 \
     seaborn>=0.12.0
 
-# Install HuggingFace for local LLM inference
-RUN pip install \
-    transformers>=4.40.0 \
-    accelerate>=0.27.0 \
-    bitsandbytes>=0.43.0 \
-    sentencepiece>=0.1.99 \
-    tokenizers>=0.15.0
+# Copy requirements file
+COPY requirements.txt /workspace/requirements.txt
 
-# Install experiment framework
-RUN pip install \
-    hydra-core>=1.3.0 \
-    omegaconf>=2.3.0 \
-    python-dotenv>=1.0.0 \
-    tqdm>=4.65.0
+# Install Python dependencies from requirements.txt
+RUN pip install -r /workspace/requirements.txt
 
-# Install LightGBM
-RUN pip install lightgbm>=4.0.0
+# Install optional heavy dependencies (skip on failure)
+RUN pip install pyrfr>=0.9.0 liac-arff>=2.5.0 || echo "Skipping pyrfr/liac-arff..."
+RUN pip install auto-sklearn>=0.15.0 || echo "Skipping auto-sklearn (optional)..."
+RUN pip install autogluon.tabular>=1.1.0 || echo "Skipping AutoGluon (optional)..."
 
-# Install Featuretools for traditional feature engineering
-RUN pip install featuretools>=1.28.0
-
-# Install Auto-sklearn (Linux only) - complex dependencies
-RUN pip install pyrfr>=0.9.0 liac-arff>=2.5.0
-RUN pip install auto-sklearn>=0.15.0 || echo "Auto-sklearn installation may have issues, continuing..."
-
-# Install AutoGluon
-RUN pip install autogluon.tabular>=1.1.0 || echo "AutoGluon installation may have issues, continuing..."
-
-# Install TALENT from GitHub
-RUN pip install git+https://github.com/LAMDA-Tabular/TALENT.git@main
+# Install TALENT from GitHub (optional)
+RUN pip install git+https://github.com/LAMDA-Tabular/TALENT.git@main || echo "Skipping TALENT (optional)..."
 
 # Install gdown for Google Drive downloads
 RUN pip install gdown>=4.7.0
