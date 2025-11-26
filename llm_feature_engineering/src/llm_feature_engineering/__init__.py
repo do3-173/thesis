@@ -21,10 +21,20 @@ from .feature_selection import (
     MLPPermutationSelector
 )
 
+# Traditional AutoML Feature Engineering
+from .traditional_fe import (
+    create_traditional_fe,
+    TraditionalFEMethod,
+    FeaturetoolsFE,
+    BaselineFE,
+    FEATURETOOLS_AVAILABLE,
+    AUTOSKLEARN_AVAILABLE
+)
+
 # MLP Feature Selection (requires PyTorch)
 # PyTorch implementation archived in favor of sklearn implementation
 MLP_AVAILABLE = False
-from .evaluation import FeatureSelectionEvaluator
+from .evaluation import FeatureSelectionEvaluator, LGBM_AVAILABLE
 from .autogluon_benchmark import AutoGluonBenchmark
 from .experiment_runner import ExperimentRunner
 
@@ -46,4 +56,13 @@ __all__ = [
     "TraditionalFeatureSelector",
     "MLPWeightSelector",
     "MLPPermutationSelector",
+    
+    # Traditional FE
+    "create_traditional_fe",
+    "TraditionalFEMethod",
+    "FeaturetoolsFE",
+    "BaselineFE",
+    "FEATURETOOLS_AVAILABLE",
+    "AUTOSKLEARN_AVAILABLE",
+    "LGBM_AVAILABLE",
 ]

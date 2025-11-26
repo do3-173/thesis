@@ -2,6 +2,42 @@
 
 A comprehensive Python framework for comparing feature selection methods, including Large Language Model (LLM) approaches, neural network methods, and traditional statistical techniques. This framework implements multiple feature selection paradigms and evaluates them across benchmark datasets.
 
+## 🚀 Quick Start (Docker - Recommended)
+
+For cloud deployment (vast.ai, runpod, etc.) with GPU:
+
+```bash
+# Clone and enter directory
+git clone https://github.com/your-username/thesis.git
+cd thesis/llm_feature_engineering
+
+# Start Docker container with GPU support
+docker-compose up -d
+
+# Enter container
+docker exec -it llm-fe-experiments bash
+
+# Download TALENT datasets
+./scripts/download_talent_datasets.sh
+
+# Run experiments (no API keys needed!)
+python scripts/run_comparison_table.py \
+    --datasets electricity phoneme kc1 \
+    --trials 3 \
+    --llm-provider huggingface \
+    --llm-model Qwen/Qwen2.5-7B-Instruct
+```
+
+**📖 Full cloud deployment guide: [scripts/README_VASTAI.md](scripts/README_VASTAI.md)**
+
+## Features
+
+- **Local LLM Inference**: Run experiments with open-weight models (Qwen, Llama, Mistral) - no API keys needed
+- **Multiple FE Methods**: Baseline, Featuretools, Auto-sklearn, AutoGluon, LLM-FE
+- **TALENT Benchmark**: 300+ tabular datasets for reproducible comparisons
+- **Downstream Models**: Logistic Regression, MLP, LightGBM
+- **Comprehensive Metrics**: Accuracy, ROC-AUC, F1-Score, MCC
+
 ## Table of Contents
 - [Quick Start](#quick-start)
 - [Project Structure](#project-structure)

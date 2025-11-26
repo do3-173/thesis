@@ -8,14 +8,25 @@ using various machine learning models and metrics.
 import pandas as pd
 import numpy as np
 from typing import List, Dict, Any, Optional, Tuple
-from sklearn.model_selection import cross_val_score, StratifiedKFold, KFold
+from sklearn.model_selection import cross_val_score, StratifiedKFold, KFold, cross_validate
 from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.neural_network import MLPClassifier, MLPRegressor
 from sklearn.preprocessing import LabelEncoder, StandardScaler
-from sklearn.metrics import accuracy_score, roc_auc_score, r2_score
+from sklearn.metrics import (
+    accuracy_score, roc_auc_score, r2_score, f1_score, 
+    matthews_corrcoef, make_scorer
+)
 import matplotlib.pyplot as plt
 import seaborn as sns
+
+# Try to import LightGBM
+try:
+    from lightgbm import LGBMClassifier, LGBMRegressor
+    LGBM_AVAILABLE = True
+except ImportError:
+    LGBM_AVAILABLE = False
+    print("Warning: LightGBM not available. Install with: pip install lightgbm")
 
 
 class FeatureSelectionEvaluator:
@@ -103,17 +114,25 @@ class FeatureSelectionEvaluator:
             Dictionary of model instances
         """
         if is_classification:
-            return {
+            models = {
                 'logistic_regression': LogisticRegression(random_state=self.random_state, max_iter=1000),
                 'random_forest': RandomForestClassifier(random_state=self.random_state, n_estimators=100),
                 'mlp': MLPClassifier(random_state=self.random_state, max_iter=500, hidden_layer_sizes=(100,))
             }
+            # Add LightGBM if available
+            if LGBM_AVAILABLE:
+                models['lgbm'] = LGBMClassifier(random_state=self.random_state, n_estimators=100, verbose=-1)
+            return models
         else:
-            return {
+            models = {
                 'linear_regression': LinearRegression(),
                 'random_forest': RandomForestRegressor(random_state=self.random_state, n_estimators=100),
                 'mlp': MLPRegressor(random_state=self.random_state, max_iter=500, hidden_layer_sizes=(100,))
             }
+            # Add LightGBM if available
+            if LGBM_AVAILABLE:
+                models['lgbm'] = LGBMRegressor(random_state=self.random_state, n_estimators=100, verbose=-1)
+            return models
     
     def get_cv_splitter(self, is_classification: bool, n_splits: int = 5):
         """
@@ -130,6 +149,31 @@ class FeatureSelectionEvaluator:
             return StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=self.random_state)
         else:
             return KFold(n_splits=n_splits, shuffle=True, random_state=self.random_state)
+    
+    def get_scoring_metrics(self, is_classification: bool) -> Dict[str, Any]:
+        """
+        Get all scoring metrics for comprehensive evaluation.
+        
+        Args:
+            is_classification: Whether this is a classification task
+            
+        Returns:
+            Dictionary of scorer names and scorer objects
+        """
+        if is_classification:
+            # MCC scorer for sklearn
+            mcc_scorer = make_scorer(matthews_corrcoef)
+            return {
+                'accuracy': 'accuracy',
+                'f1': 'f1_weighted',
+                'roc_auc': 'roc_auc_ovr_weighted',
+                'mcc': mcc_scorer
+            }
+        else:
+            return {
+                'r2': 'r2',
+                'neg_mse': 'neg_mean_squared_error'
+            }
     
     def get_scoring_metric(self, is_classification: bool, task_info: Optional[Dict] = None) -> str:
         """
@@ -154,7 +198,7 @@ class FeatureSelectionEvaluator:
                             X: pd.DataFrame, y: pd.Series, 
                             task_info: Optional[Dict] = None) -> Dict[str, Any]:
         """
-        Evaluate a feature selection method on a single trial.
+        Evaluate a feature selection method on a single trial with multiple metrics.
         
         Args:
             method_name: Name of the feature selection method
@@ -164,7 +208,7 @@ class FeatureSelectionEvaluator:
             task_info: Additional task information
             
         Returns:
-            Dictionary with evaluation results
+            Dictionary with evaluation results including all metrics
         """
         if not selected_features:
             return {'error': 'No features selected'}
@@ -175,7 +219,8 @@ class FeatureSelectionEvaluator:
         # Get models and evaluation setup
         models = self.get_models(is_classification)
         cv_splitter = self.get_cv_splitter(is_classification)
-        scoring = self.get_scoring_metric(is_classification, task_info)
+        primary_scoring = self.get_scoring_metric(is_classification, task_info)
+        all_scoring = self.get_scoring_metrics(is_classification)
         
 
         model_results = {}
@@ -184,20 +229,52 @@ class FeatureSelectionEvaluator:
                 # Standardize features for neural networks
                 if 'mlp' in model_name:
                     scaler = StandardScaler()
-                    x_scaled = pd.DataFrame(
+                    x_eval = pd.DataFrame(
                         scaler.fit_transform(x_selected), 
                         columns=x_selected.columns, 
                         index=x_selected.index
                     )
-                    scores = cross_val_score(model, x_scaled, y_processed, cv=cv_splitter, scoring=scoring)
                 else:
-                    scores = cross_val_score(model, x_selected, y_processed, cv=cv_splitter, scoring=scoring)
+                    x_eval = x_selected
                 
-                model_results[model_name] = {
-                    'scores': scores.tolist(),
-                    'mean_score': scores.mean(),
-                    'std_score': scores.std()
-                }
+                # Use cross_validate to get multiple metrics at once
+                try:
+                    cv_results = cross_validate(
+                        model, x_eval, y_processed, 
+                        cv=cv_splitter, 
+                        scoring=all_scoring,
+                        return_train_score=False
+                    )
+                    
+                    # Extract results for each metric
+                    metrics_results = {}
+                    for metric_name in all_scoring.keys():
+                        scores = cv_results[f'test_{metric_name}']
+                        metrics_results[metric_name] = {
+                            'scores': scores.tolist(),
+                            'mean': float(scores.mean()),
+                            'std': float(scores.std())
+                        }
+                    
+                    # Also include legacy format for backwards compatibility
+                    primary_scores = cv_results.get(f'test_{primary_scoring}', 
+                                                    cv_results.get('test_accuracy', np.array([0])))
+                    
+                    model_results[model_name] = {
+                        'scores': primary_scores.tolist(),
+                        'mean_score': float(primary_scores.mean()),
+                        'std_score': float(primary_scores.std()),
+                        'all_metrics': metrics_results
+                    }
+                except Exception as cv_error:
+                    # Fallback to single metric if multi-metric fails
+                    scores = cross_val_score(model, x_eval, y_processed, cv=cv_splitter, scoring=primary_scoring)
+                    model_results[model_name] = {
+                        'scores': scores.tolist(),
+                        'mean_score': float(scores.mean()),
+                        'std_score': float(scores.std())
+                    }
+                    
             except Exception as e:
                 model_results[model_name] = {'error': str(e)}
         
@@ -206,7 +283,7 @@ class FeatureSelectionEvaluator:
             'num_features': len(selected_features),
             'selected_features': selected_features,
             'task_type': 'classification' if is_classification else 'regression',
-            'metric': scoring,
+            'metric': primary_scoring,
             'model_results': model_results
         }
     

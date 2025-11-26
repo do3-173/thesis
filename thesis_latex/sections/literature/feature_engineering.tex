@@ -8,6 +8,34 @@ Feature engineering encompasses the entire process of using domain knowledge to 
 
 This section provides a comprehensive overview of traditional feature engineering techniques, establishing the theoretical foundation that underlies both manual and automated approaches. We examine the mathematical foundations, practical implementations, and empirical guidelines that have evolved through decades of machine learning practice.
 
+\subsection{Principles of Manual Feature Engineering}
+
+Feature engineering is fundamentally a representation problem, defined by \citet{duboue2020art} as "the process of representing a problem domain to make it amenable for learning techniques." This process distinguishes between \textit{raw data}—the initial collection of observations and attributes—and \textit{features}, which are specific values computed from raw data to model the problem for a machine learning algorithm.
+
+\subsubsection{The Feature Engineering Cycle}
+The manual feature engineering process is inherently iterative. \citet{duboue2020art} proposes a formal cycle that emphasizes building an understanding of what features work through repeated experimentation. A critical aspect of this cycle is the proper management of data to avoid overfitting. The dataset should be split into a \textit{feature engineering set} (used for exploration and training) and a \textit{final evaluation set} (held out completely until the end).
+
+To further mitigate the risk of overfitting during the iterative process, it is recommended to maintain two parallel feature sets:
+\begin{itemize}
+    \item \textbf{Optimized Set}: Contains all features that show promise during the iterative cycle. This set has a higher risk of overfitting to the development data.
+    \item \textbf{Conservative Set}: A more restricted set of features that are robust and well-understood.
+\end{itemize}
+The final model selection involves comparing the performance of these two sets on the held-out evaluation data.
+
+\subsubsection{Domain Modelling and Feature Ideation}
+Domain modelling represents the creative phase of translating abstract real-world problems into concrete data representations. This involves \textit{feature ideation}, a brainstorming process where "thought features"—information a human would use to make a prediction—are identified and then mapped to available data.
+
+Effective features typically exhibit three key properties \citep{duboue2020art}:
+\begin{enumerate}
+    \item \textbf{Informative}: The feature describes a meaningful aspect of the domain, aiding interpretability and error analysis.
+    \item \textbf{Available}: The feature can be computed for the majority of instances.
+    \item \textbf{Discriminant}: The feature effectively separates target classes or correlates with the target value.
+\end{enumerate}
+As famously stated by Peter Norvig, "Good features allow a simple model to beat a complex model." This principle underscores the value of investing time in domain modelling rather than solely relying on complex algorithms to find patterns in raw data.
+
+\subsubsection{Featurization and Feature Templates}
+Featurization is the operational step of implementing the domain model, transforming raw data into the final feature vectors. This often involves the use of \textit{feature templates}—small programs or functions that systematically transform raw data into multiple features. For example, a date attribute might be expanded via a template into separate features for year, month, day, day-of-week, and is-holiday, thereby exposing cyclic patterns to the model that might otherwise be difficult to learn from a single timestamp.
+
 \subsection{Feature Preprocessing and Normalization}
 
 Feature preprocessing forms the foundation of effective machine learning, addressing issues of scale, distribution, and data quality that can severely impact model performance. The preprocessing stage involves several critical transformations that prepare raw data for algorithmic consumption.
@@ -551,6 +579,8 @@ Modern AutoML systems integrate feature engineering within broader optimization 
 \textbf{TPOT (Tree-based Pipeline Optimization Tool)} \citep{olson2016tpot} employs genetic programming to evolve entire machine learning pipelines, including feature engineering steps. The system represents pipelines as tree structures where nodes correspond to preprocessing operations, feature transformations, and learning algorithms. The evolutionary process discovers novel combinations of operations that might not be considered by human practitioners.
 
 \textbf{Auto-sklearn} \citep{feurer2015efficient} extends the scikit-learn ecosystem with Bayesian optimization for automated pipeline construction. The system maintains a library of preprocessing techniques including feature scaling, dimensionality reduction, and categorical encoding, automatically selecting appropriate combinations based on dataset characteristics.
+
+\textbf{AutoGluon-Tabular} \citep{agtabular} introduces a robust automated stacking strategy that achieves state-of-the-art performance on tabular data. Unlike traditional AutoML frameworks that rely heavily on hyperparameter search, AutoGluon focuses on ensembling multiple models into a multi-layer stack. Key to its success is a novel \textit{multi-layer stack ensembling} combined with \textit{repeated k-fold bagging}. This approach allows the system to utilize all available data for both training and validation at every layer of the stack, significantly reducing overfitting compared to traditional hold-out validation strategies. AutoGluon automatically handles feature preprocessing, including handling of missing values, categorical encoding, and text processing, making it a robust baseline for modern feature engineering comparisons.
 
 \textbf{H2O AutoML} provides enterprise-scale automated feature engineering through its automatic feature generation capabilities, including interaction term creation, target encoding for categorical variables, and time-series feature extraction for temporal datasets.
 

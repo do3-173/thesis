@@ -1,0 +1,56 @@
+# Docker ignore file
+# Speeds up builds by excluding unnecessary files
+
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info
+.eggs
+*.egg
+dist
+build
+.pytest_cache
+.mypy_cache
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Jupyter
+.ipynb_checkpoints
+
+# Virtual environments
+venv
+env
+.env
+
+# Large files
+*.zip
+*.tar.gz
+*.h5
+*.pkl
+*.npy
+
+# Experiments and outputs (will be mounted as volumes)
+experiments/
+outputs/
+results/
+logs/
+
+# Documentation
+docs/
+*.md
+!README.md
+!README_VASTAI.md
+
+# Test data that shouldn't be in image
+datasets/

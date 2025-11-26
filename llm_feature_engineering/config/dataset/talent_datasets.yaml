@@ -1,0 +1,32 @@
+# Data Configuration - TALENT Benchmark Datasets
+# Configuration for loading datasets from TALENT benchmark library
+
+# @package _global_
+source: "talent"  # local, talent, or auto
+dataset_dir: "../TALENT/example_datasets"
+test_size: 0.2
+
+# TALENT datasets to process (all available datasets)
+datasets:
+  - "adult"
+  - "bank"
+  - "BNG(breast-w)"
+  - "BNG(tic-tac-toe)"
+  - "car-evaluation"
+  - "cmc"
+  - "cpu_act"
+  - "credit-g"
+  - "electricity"
+  - "eye_movements"
+  - "give-me-some-credit"
+  - "heart-disease"
+  - "jungle_chess_2pcs_raw_endgame_complete"
+  - "kc1"
+  - "mfeat-factors"
+  - "pc1"
+  - "phoneme"
+  - "pima-diabetes"
+  - "pol"
+  - "splice"
+  - "vehicle"
+  - "wine"

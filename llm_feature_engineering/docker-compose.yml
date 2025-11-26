@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  llm-fe:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: llm-feature-engineering:latest
+    container_name: llm-fe-experiments
+    
+    # GPU support
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    
+    # Mount volumes for persistent data
+    volumes:
+      # Source code (for development)
+      - .:/workspace/llm_feature_engineering
+      # Datasets (persistent)
+      - ./datasets:/workspace/datasets
+      # Outputs and results (persistent)
+      - ./experiments:/workspace/llm_feature_engineering/experiments
+      # HuggingFace cache (persistent, avoid re-downloading models)
+      - huggingface_cache:/root/.cache/huggingface
+    
+    # Environment variables
+    environment:
+      - PYTHONPATH=/workspace/llm_feature_engineering/src
+      - TALENT_DATA_PATH=/workspace/datasets/TALENT
+      - HF_HOME=/root/.cache/huggingface
+      - TRANSFORMERS_CACHE=/root/.cache/huggingface/transformers
+      # Optional: HuggingFace token for gated models
+      - HF_TOKEN=${HF_TOKEN:-}
+    
+    # Keep container running
+    stdin_open: true
+    tty: true
+    
+    # Working directory
+    working_dir: /workspace/llm_feature_engineering
+    
+    # Default command
+    command: /bin/bash
+
+volumes:
+  huggingface_cache:
+    driver: local

@@ -53,13 +53,3 @@ traditional:
   
   sequential:
     enabled: false
-
-# Downstream classifiers for evaluation
-baseline_classifiers:
-  logistic_regression_l2:
-    enabled: true
-    random_state: 42
-    max_iter: 1000
-  
-  random_forest_classifier:
-    enabled: true

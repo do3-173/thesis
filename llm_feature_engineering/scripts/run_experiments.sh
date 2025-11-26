@@ -36,8 +36,8 @@ run_experiment() {
     
     cd "$(dirname "$0")/.."
     python -m src.llm_feature_engineering.experiment_runner \
-        data="$data_config" \
-        methods="$methods_config" \
+        dataset="$data_config" \
+        feature_engineering="$methods_config" \
         evaluation="$evaluation_config" \
         llm="$llm_config" \
         benchmark="$benchmark_config" \

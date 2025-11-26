@@ -1,16 +1,17 @@
 # LLM4FS Evaluation Configuration
-# Matches paper's evaluation protocol
+# Matches paper's evaluation protocol + Loris's requirements
 
 # Metric: AUROC (Area Under Receiver Operating Characteristic)
 primary_metric: "auroc"
 
-# Additional metrics to track
+# Additional metrics to track - Including MCC as required by Loris
 metrics:
   - "auroc"
   - "accuracy"
   - "f1"
   - "precision"
   - "recall"
+  - "mcc"  # Matthews Correlation Coefficient - REQUIRED
 
 # Feature proportion sweep (10% to 100% in ~10% increments)
 # This matches Figure 7 from the paper
@@ -33,8 +34,8 @@ cross_validation:
   shuffle: true
   random_state: 42
 
-# Multiple trials for statistical significance
-n_trials: 1  # Start with 1 for testing, increase to 5 for full experiments
+# Multiple trials for statistical significance - Loris requires 3
+n_trials: 3  # Required: 3 repeats per experiment
 
 # Results output
 save_detailed_results: true

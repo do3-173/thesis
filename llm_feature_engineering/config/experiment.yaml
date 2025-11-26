@@ -2,20 +2,22 @@
 # This file defines the complete experimental setup for LLM-based feature engineering
 
 defaults:
-  - data: talent_datasets
+  - dataset: talent_datasets
+  - preprocessing: default
+  - feature_engineering: reproduction
+  - model: standard
   - llm: huggingface
-  - methods: reproduction
   - evaluation: llm4fs_evaluation
   - benchmark: disabled
   - _self_
 
-# Override for LLM4FS reproduction on all 4 benchmark datasets
-data:
+# Override for LLM4FS reproduction on all TALENT benchmark datasets
+dataset:
   datasets:
-    - "BNG(breast-w)"
-    - "BNG(tic-tac-toe)"
     - "adult"
     - "bank"
+    - "BNG(breast-w)"
+    - "BNG(tic-tac-toe)"
     - "car-evaluation"
     - "cmc"
     - "cpu_act"

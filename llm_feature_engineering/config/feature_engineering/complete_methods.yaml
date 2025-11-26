@@ -56,26 +56,3 @@ traditional:
   univariate:
     enabled: true
     top_k: 5
-
-# Baseline classifiers for evaluation
-baseline_classifiers:
-  logistic_regression:
-    enabled: true
-    random_state: 42
-    max_iter: 1000
-  
-  mlp:
-    enabled: true
-    random_state: 42
-    max_iter: 200
-    hidden_layer_sizes: [50]
-  
-  random_forest_classifier:
-    enabled: true
-    random_state: 42
-    n_estimators: 100
-  
-  xgboost:
-    enabled: true
-    random_state: 42
-    n_estimators: 100

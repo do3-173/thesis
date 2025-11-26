@@ -44,7 +44,7 @@ class ExperimentRunner:
         self.results_dir.mkdir(parents=True, exist_ok=True)
         
 
-        self.dataset_manager = DatasetManager(config.data.dataset_dir)
+        self.dataset_manager = DatasetManager(config.dataset.dataset_dir)
         self.llm_interface = None
         self.experiment_results = {}
         
@@ -81,12 +81,12 @@ class ExperimentRunner:
         """
         from omegaconf import ListConfig
         
-        if self.config.data.datasets == "all":
-            return self.dataset_manager.list_datasets(self.config.data.source)
-        elif isinstance(self.config.data.datasets, (list, ListConfig)):
-            return list(self.config.data.datasets)  # Convert ListConfig to regular list
+        if self.config.dataset.datasets == "all":
+            return self.dataset_manager.list_datasets(self.config.dataset.source)
+        elif isinstance(self.config.dataset.datasets, (list, ListConfig)):
+            return list(self.config.dataset.datasets)  # Convert ListConfig to regular list
         else:
-            return [self.config.data.datasets]
+            return [self.config.dataset.datasets]
     
     def create_feature_selectors(self) -> Dict[str, Any]:
         """
@@ -98,49 +98,49 @@ class ExperimentRunner:
         selectors = {}
         
 
-        if self.config.methods.text_based.enabled and self.llm_interface:
+        if self.config.feature_engineering.text_based.enabled and self.llm_interface:
             selectors['text_based'] = create_feature_selector(
                 'text_based', 
                 llm_interface=self.llm_interface
             )
         
-        if self.config.methods.llm4fs.enabled and self.llm_interface:
+        if self.config.feature_engineering.llm4fs.enabled and self.llm_interface:
             selectors['llm4fs'] = create_feature_selector(
                 'llm4fs',
                 llm_interface=self.llm_interface
             )
         
-        if hasattr(self.config.methods, 'caafe') and self.config.methods.caafe.enabled and self.llm_interface:
+        if hasattr(self.config.methods, 'caafe') and self.config.feature_engineering.caafe.enabled and self.llm_interface:
             selectors['caafe'] = create_feature_selector(
                 'caafe',
                 llm_interface=self.llm_interface,
-                **OmegaConf.to_container(self.config.methods.caafe, resolve=True)
+                **OmegaConf.to_container(self.config.feature_engineering.caafe, resolve=True)
             )
         
 
-        if self.config.methods.traditional.mutual_info.enabled:
+        if self.config.feature_engineering.traditional.mutual_info.enabled:
             selectors['mutual_info'] = create_feature_selector(
                 'traditional',
                 method='mutual_info'
             )
         
-        if self.config.methods.traditional.random_forest.enabled:
+        if self.config.feature_engineering.traditional.random_forest.enabled:
             selectors['random_forest'] = create_feature_selector(
                 'traditional',
                 method='random_forest'
             )
         
 
-        if self.config.methods.mlp_weights.enabled:
+        if self.config.feature_engineering.mlp_weights.enabled:
             selectors['mlp_weights'] = create_feature_selector(
                 'mlp_weights',
-                **OmegaConf.to_container(self.config.methods.mlp_weights, resolve=True)
+                **OmegaConf.to_container(self.config.feature_engineering.mlp_weights, resolve=True)
             )
         
-        if self.config.methods.mlp_permutation.enabled:
+        if self.config.feature_engineering.mlp_permutation.enabled:
             selectors['mlp_permutation'] = create_feature_selector(
                 'mlp_permutation',
-                **OmegaConf.to_container(self.config.methods.mlp_permutation, resolve=True)
+                **OmegaConf.to_container(self.config.feature_engineering.mlp_permutation, resolve=True)
             )
         
         return selectors
@@ -162,15 +162,15 @@ class ExperimentRunner:
 
             ml_data = self.dataset_manager.prepare_for_ml(
                 dataset_name, 
-                source=self.config.data.source,
-                test_size=self.config.data.test_size,
+                source=self.config.dataset.source,
+                test_size=self.config.dataset.test_size,
                 random_state=self.config.experiment.random_seed
             )
             
 
             dataset_info = self.dataset_manager.get_dataset_info(
                 dataset_name, 
-                source=self.config.data.source
+                source=self.config.dataset.source
             )
             
             print(f"Dataset shape: {ml_data['X_train'].shape}")
@@ -219,7 +219,7 @@ class ExperimentRunner:
                         features = selector.select_features(
                             ml_data['X_train'], 
                             ml_data['y_train'],
-                            top_k=self.config.methods.traditional[method_name].top_k
+                            top_k=self.config.feature_engineering.traditional[method_name].top_k
                         )
                     
                     selection_time = time.time() - start_time
@@ -295,8 +295,8 @@ class ExperimentRunner:
 
             ml_data = self.dataset_manager.prepare_for_ml(
                 dataset_name,
-                source=self.config.data.source,
-                test_size=self.config.data.test_size,
+                source=self.config.dataset.source,
+                test_size=self.config.dataset.test_size,
                 random_state=self.config.experiment.random_seed
             )
             

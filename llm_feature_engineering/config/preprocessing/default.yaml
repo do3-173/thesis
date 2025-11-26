@@ -1,0 +1,21 @@
+# Preprocessing Configuration
+# Defines data preprocessing steps before feature engineering
+
+# @package _global_
+
+preprocessing:
+  # Scaling/normalization
+  scale_features: false  # If true, apply StandardScaler
+  
+  # Missing value handling
+  handle_missing: true
+  missing_strategy: "mean"  # mean, median, most_frequent, or constant
+  
+  # Categorical encoding
+  encode_categorical: true
+  categorical_strategy: "onehot"  # onehot, label, or target
+  
+  # Outlier handling
+  remove_outliers: false
+  outlier_method: "iqr"  # iqr or zscore
+  outlier_threshold: 3.0

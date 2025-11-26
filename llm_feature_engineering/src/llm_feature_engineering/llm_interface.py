@@ -187,12 +187,12 @@ class HuggingFaceInterface(LLMInterface):
 
     def _get_default_model(self) -> str:
         """Get default Hugging Face model."""
-        return "Qwen/Qwen2.5-0.5B-Instruct"
+        return "Qwen/Qwen2.5-7B-Instruct"
 
     def _load_api_key(self) -> Optional[str]:
         """Load Hugging Face token from environment (optional)."""
         load_dotenv()
-        return os.getenv('HUGGINGFACE_TOKEN')
+        return os.getenv('HUGGINGFACE_TOKEN') or os.getenv('HF_TOKEN')
 
     def _initialize_client(self):
         """Initialize Hugging Face model and tokenizer."""
@@ -200,21 +200,51 @@ class HuggingFaceInterface(LLMInterface):
             from transformers import AutoModelForCausalLM, AutoTokenizer
             import torch
         except ImportError:
-            raise ImportError("transformers and torch are required for HuggingFaceInterface")
+            raise ImportError("transformers and torch are required for HuggingFaceInterface. "
+                              "Install with: pip install transformers torch")
 
         print(f"Loading local model: {self.model}...")
         
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-        print(f"Using device: {device}")
+        # Determine device and dtype
+        if torch.cuda.is_available():
+            device = "cuda"
+            # Use bfloat16 for better performance on modern GPUs
+            dtype = torch.bfloat16
+            print(f"CUDA available. GPU memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.1f} GB")
+        else:
+            device = "cpu"
+            dtype = torch.float32
+        print(f"Using device: {device}, dtype: {dtype}")
 
-        self.tokenizer = AutoTokenizer.from_pretrained(self.model, token=self.api_key)
-        self.llm_model = AutoModelForCausalLM.from_pretrained(
-            self.model,
+        # Load tokenizer
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            self.model, 
             token=self.api_key,
-            device_map=device,
-            torch_dtype=torch.float32 if device == "cpu" else torch.float16,
             trust_remote_code=True
         )
+        
+        # Set pad token if not set
+        if self.tokenizer.pad_token is None:
+            self.tokenizer.pad_token = self.tokenizer.eos_token
+
+        # Load model with appropriate settings for large models
+        load_kwargs = {
+            "token": self.api_key,
+            "torch_dtype": dtype,
+            "trust_remote_code": True,
+            "low_cpu_mem_usage": True,
+        }
+        
+        # For large models (>10B params), use device_map="auto" for multi-GPU or efficient loading
+        if any(size in self.model.lower() for size in ["70b", "72b", "65b", "34b", "32b"]):
+            print(f"Large model detected, using device_map='auto' for efficient loading...")
+            load_kwargs["device_map"] = "auto"
+        else:
+            load_kwargs["device_map"] = device
+        
+        self.llm_model = AutoModelForCausalLM.from_pretrained(self.model, **load_kwargs)
+        print(f"Model loaded successfully on {device}")
+        
         return self.llm_model
 
     def call_llm(self, prompt: str, max_tokens: int = 1000, temperature: float = 0.1) -> Optional[str]:
@@ -222,6 +252,8 @@ class HuggingFaceInterface(LLMInterface):
         Make generation call to local Hugging Face model.
         """
         try:
+            import torch
+            
             # Check if chat template is available, otherwise fallback to raw prompt
             if hasattr(self.tokenizer, "apply_chat_template") and self.tokenizer.chat_template:
                 messages = [{"role": "user", "content": prompt}]
@@ -235,22 +267,30 @@ class HuggingFaceInterface(LLMInterface):
 
             model_inputs = self.tokenizer([text], return_tensors="pt").to(self.llm_model.device)
 
-            generated_ids = self.llm_model.generate(
-                model_inputs.input_ids,
-                max_new_tokens=max_tokens,
-                temperature=temperature,
-                do_sample=True if temperature > 0 else False,
-                pad_token_id=self.tokenizer.eos_token_id
-            )
+            # Generation with proper settings
+            with torch.no_grad():
+                generated_ids = self.llm_model.generate(
+                    model_inputs.input_ids,
+                    attention_mask=model_inputs.attention_mask,
+                    max_new_tokens=max_tokens,
+                    temperature=max(temperature, 0.01),  # Avoid temperature=0 issues
+                    do_sample=temperature > 0.01,
+                    top_p=0.9,
+                    pad_token_id=self.tokenizer.pad_token_id,
+                    eos_token_id=self.tokenizer.eos_token_id,
+                )
             
+            # Extract only the generated tokens (not the input)
             generated_ids = [
                 output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
             ]
 
             response = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
-            return response
+            return response.strip()
         except Exception as e:
+            import traceback
             print(f"Hugging Face generation failed: {e}")
+            traceback.print_exc()
             return None
 
 
