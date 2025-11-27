@@ -32,6 +32,7 @@ venv.bak/
 # Experiment results
 experiments/*/
 !experiments/.gitkeep
+!experiments/comparison_table/
 AutogluonModels/
 *.pkl
 *.joblib
@@ -76,6 +77,7 @@ Thumbs.db
 
 # Data files (keep datasets in dedicated data directories)
 *.csv
+!experiments/comparison_table/*.csv
 *.json
 *.h5
 *.hdf5
