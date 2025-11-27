@@ -272,7 +272,7 @@ class HuggingFaceInterface(LLMInterface):
                 generated_ids = self.llm_model.generate(
                     model_inputs.input_ids,
                     attention_mask=model_inputs.attention_mask,
-                    max_new_tokens=max_tokens,
+                    max_new_tokens=min(max_tokens, 2048),  # Limit to 2048 tokens to prevent infinite generation
                     temperature=max(temperature, 0.01),  # Avoid temperature=0 issues
                     do_sample=temperature > 0.01,
                     top_p=0.9,
