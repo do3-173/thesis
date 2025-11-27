@@ -583,46 +583,52 @@ def apply_autosklearn(X: pd.DataFrame, y: pd.Series,
 
 class AutoGluonFE(TraditionalFEMethod):
     """
-    AutoGluon-based feature engineering.
+    AutoGluon-inspired feature engineering.
     
-    Uses AutoGluon's AutoMLPipelineFeatureGenerator for automatic
-    feature generation and preprocessing.
+    Since AutoGluon's AutoMLPipelineFeatureGenerator only does preprocessing
+    (not actual feature generation), this implementation uses sklearn's
+    PolynomialFeatures to generate interaction and polynomial features,
+    which is a common baseline for automated feature engineering.
+    
+    This creates:
+    - Polynomial features (x^2)
+    - Interaction features (x1 * x2)
+    - Optionally limits to top N features by variance
     
     Docs: https://auto.gluon.ai/stable/index.html
     """
     
     def __init__(self, 
-                 enable_numeric_features: bool = True,
-                 enable_categorical_features: bool = True,
-                 enable_datetime_features: bool = True,
-                 enable_text_features: bool = False,
+                 degree: int = 2,
+                 interaction_only: bool = False,
+                 max_features: int = 50,
                  verbosity: int = 0):
         """
-        Initialize AutoGluon feature engineering.
+        Initialize AutoGluon-style feature engineering.
         
         Args:
-            enable_numeric_features: Process numeric features
-            enable_categorical_features: Process categorical features
-            enable_datetime_features: Process datetime features
-            enable_text_features: Process text features (slow)
+            degree: Polynomial degree (2 = quadratic, includes interactions)
+            interaction_only: If True, only create interactions (no x^2)
+            max_features: Maximum number of features to keep (by variance)
             verbosity: Verbosity level (0=silent, 1=info, 2=debug)
         """
         super().__init__("AutoGluon")
         
-        if not AUTOGLUON_AVAILABLE:
-            raise ImportError("AutoGluon is not installed. Install with: pip install autogluon.tabular")
+        from sklearn.preprocessing import PolynomialFeatures
+        from sklearn.feature_selection import VarianceThreshold
         
-        self.enable_numeric_features = enable_numeric_features
-        self.enable_categorical_features = enable_categorical_features
-        self.enable_datetime_features = enable_datetime_features
-        self.enable_text_features = enable_text_features
+        self.degree = degree
+        self.interaction_only = interaction_only
+        self.max_features = max_features
         self.verbosity = verbosity
-        self.feature_generator = None
+        self.poly_transformer = None
+        self.feature_names = None
+        self.selected_features = None
         
     def fit_transform(self, X: pd.DataFrame, y: pd.Series,
                      dataset_info: Optional[Dict] = None) -> pd.DataFrame:
         """
-        Generate features using AutoGluon's feature generator.
+        Generate polynomial and interaction features.
         
         Args:
             X: Input feature matrix
@@ -632,33 +638,75 @@ class AutoGluonFE(TraditionalFEMethod):
         Returns:
             DataFrame with engineered features
         """
-        logger.info(f"AutoGluon: Processing {X.shape[0]} samples, {X.shape[1]} features")
+        from sklearn.preprocessing import PolynomialFeatures
+        from sklearn.feature_selection import VarianceThreshold
         
-        # Initialize the feature generator
-        self.feature_generator = AutoMLPipelineFeatureGenerator(
-            enable_numeric_features=self.enable_numeric_features,
-            enable_categorical_features=self.enable_categorical_features,
-            enable_datetime_features=self.enable_datetime_features,
-            enable_text_special_features=self.enable_text_features,
-            enable_text_ngram_features=self.enable_text_features,
-            verbosity=self.verbosity
+        logger.info(f"AutoGluon-style FE: Processing {X.shape[0]} samples, {X.shape[1]} features")
+        
+        # Only use numeric features for polynomial expansion
+        numeric_cols = X.select_dtypes(include=[np.number]).columns.tolist()
+        categorical_cols = X.select_dtypes(exclude=[np.number]).columns.tolist()
+        
+        if not numeric_cols:
+            logger.warning("No numeric features found for polynomial expansion")
+            return X.copy()
+        
+        X_numeric = X[numeric_cols].copy()
+        
+        # Handle missing values
+        X_numeric = X_numeric.fillna(X_numeric.median())
+        
+        # Create polynomial features
+        self.poly_transformer = PolynomialFeatures(
+            degree=self.degree,
+            interaction_only=self.interaction_only,
+            include_bias=False
         )
         
-        # Fit and transform
-        X_transformed = self.feature_generator.fit_transform(X, y)
+        X_poly = self.poly_transformer.fit_transform(X_numeric)
+        poly_feature_names = self.poly_transformer.get_feature_names_out(numeric_cols)
+        X_poly_df = pd.DataFrame(X_poly, columns=poly_feature_names, index=X.index)
         
-        # Handle any remaining issues
-        X_transformed = X_transformed.replace([np.inf, -np.inf], np.nan)
-        X_transformed = X_transformed.fillna(0)
+        # Select top features by variance if we have too many
+        if X_poly_df.shape[1] > self.max_features:
+            # Calculate variance for each feature
+            variances = X_poly_df.var()
+            # Keep original features + top new features by variance
+            original_features = numeric_cols
+            new_features = [f for f in X_poly_df.columns if f not in original_features]
+            
+            # Sort new features by variance
+            new_feature_vars = variances[new_features].sort_values(ascending=False)
+            n_new_to_keep = self.max_features - len(original_features)
+            selected_new = new_feature_vars.head(n_new_to_keep).index.tolist()
+            
+            self.selected_features = original_features + selected_new
+            X_poly_df = X_poly_df[self.selected_features]
+            
+            if self.verbosity > 0:
+                logger.info(f"Selected {len(self.selected_features)} features (from {len(poly_feature_names)})")
+        else:
+            self.selected_features = list(X_poly_df.columns)
         
+        # Add back categorical features if any (one-hot encoded)
+        if categorical_cols:
+            X_cat = pd.get_dummies(X[categorical_cols], prefix=categorical_cols, drop_first=True)
+            X_poly_df = pd.concat([X_poly_df, X_cat], axis=1)
+        
+        # Clean up
+        X_poly_df = X_poly_df.replace([np.inf, -np.inf], np.nan)
+        X_poly_df = X_poly_df.fillna(0)
+        
+        self.feature_names = list(X_poly_df.columns)
         self.fitted = True
-        logger.info(f"AutoGluon: Generated {X_transformed.shape[1]} features")
         
-        return X_transformed
+        logger.info(f"AutoGluon-style FE: Generated {X_poly_df.shape[1]} features")
+        
+        return X_poly_df
     
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
         """
-        Transform new data using fitted feature generator.
+        Transform new data using fitted polynomial transformer.
         
         Args:
             X: Input feature matrix
@@ -666,14 +714,39 @@ class AutoGluonFE(TraditionalFEMethod):
         Returns:
             DataFrame with engineered features
         """
-        if not self.fitted or self.feature_generator is None:
+        if not self.fitted or self.poly_transformer is None:
             raise ValueError("AutoGluonFE must be fit before transform")
         
-        X_transformed = self.feature_generator.transform(X)
-        X_transformed = X_transformed.replace([np.inf, -np.inf], np.nan)
-        X_transformed = X_transformed.fillna(0)
+        # Only use numeric features
+        numeric_cols = X.select_dtypes(include=[np.number]).columns.tolist()
+        categorical_cols = X.select_dtypes(exclude=[np.number]).columns.tolist()
         
-        return X_transformed
+        if not numeric_cols:
+            return X.copy()
+        
+        X_numeric = X[numeric_cols].copy()
+        X_numeric = X_numeric.fillna(X_numeric.median())
+        
+        # Apply polynomial transformation
+        X_poly = self.poly_transformer.transform(X_numeric)
+        poly_feature_names = self.poly_transformer.get_feature_names_out(numeric_cols)
+        X_poly_df = pd.DataFrame(X_poly, columns=poly_feature_names, index=X.index)
+        
+        # Select same features as training
+        if self.selected_features:
+            available_features = [f for f in self.selected_features if f in X_poly_df.columns]
+            X_poly_df = X_poly_df[available_features]
+        
+        # Add back categorical features if any
+        if categorical_cols:
+            X_cat = pd.get_dummies(X[categorical_cols], prefix=categorical_cols, drop_first=True)
+            X_poly_df = pd.concat([X_poly_df, X_cat], axis=1)
+        
+        # Clean up
+        X_poly_df = X_poly_df.replace([np.inf, -np.inf], np.nan)
+        X_poly_df = X_poly_df.fillna(0)
+        
+        return X_poly_df
 
 
 def create_traditional_fe(method: str, **kwargs) -> TraditionalFEMethod:
