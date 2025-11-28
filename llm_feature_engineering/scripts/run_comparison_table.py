@@ -88,6 +88,10 @@ DEFAULT_CONFIG = {
     "featuretools_max_depth": 2,
     "featuretools_max_features": 50,
     
+    # AutoGluon settings
+    "autogluon_degree": 2,  # Polynomial degree (2 = quadratic + interactions)
+    "autogluon_max_features": 50,  # Max features to keep (by variance)
+    
     # Auto-sklearn settings
     "autosklearn_time_limit": 60,
 }
@@ -275,7 +279,11 @@ class ComparisonTableExperiment:
         print(f"  Running AutoGluon feature generation...")
         try:
             from llm_feature_engineering.traditional_fe import AutoGluonFE
-            autogluon_fe = AutoGluonFE(verbosity=0)
+            autogluon_fe = AutoGluonFE(
+                degree=self.config["autogluon_degree"],
+                max_features=self.config["autogluon_max_features"],
+                verbosity=0
+            )
             X_autogluon = autogluon_fe.fit_transform(X, y)
             return self.evaluate_method(X_autogluon, y, "AutoGluon", trial)
         except Exception as e:

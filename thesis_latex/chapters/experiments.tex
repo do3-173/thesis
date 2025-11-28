@@ -3,3 +3,87 @@
 % Detail the experimental design, datasets, and implementation specifics
 % This chapter will cover benchmark datasets, evaluation metrics, 
 % and implementation details of the various approaches
+
+\section{Comparison of Traditional Feature Engineering Methods}
+
+\subsection{Electricity Dataset}
+
+\begin{table}[!ht]
+\centering
+\footnotesize
+\begin{tabular}{@{}lllcccc@{}}
+\hline
+\textbf{Method} & \textbf{Model} & \textbf{Feat.} & \textbf{Accuracy} & \textbf{ROC-AUC} & \textbf{F1-Score} & \textbf{MCC} \\
+\hline
+Baseline & LR & 8 & 0.7552±0.0001 & 0.8195±0.0001 & 0.7495±0.0002 & 0.4938±0.0003 \\
+Baseline & MLP & 8 & 0.8233±0.0013 & 0.9019±0.0007 & 0.8226±0.0012 & 0.6367±0.0025 \\
+Baseline & LGBM & 8 & 0.8816±0.0007 & 0.9543±0.0002 & 0.8815±0.0007 & 0.7573±0.0014 \\
+\hline
+Featuretools & LR & 50 & 0.7622±0.0001 & 0.8305±0.0001 & 0.7579±0.0001 & 0.5080±0.0003 \\
+Featuretools & MLP & 50 & 0.8216±0.0010 & 0.9017±0.0004 & 0.8210±0.0008 & 0.6336±0.0015 \\
+Featuretools & LGBM & 50 & 0.8892±0.0005 & 0.9585±0.0001 & 0.8891±0.0005 & 0.7728±0.0010 \\
+\hline
+AutoGluon & LR & 44 & 0.7791±0.0007 & 0.8529±0.0001 & 0.7771±0.0008 & 0.5440±0.0015 \\
+AutoGluon & MLP & 44 & 0.8278±0.0017 & 0.9074±0.0008 & 0.8271±0.0018 & 0.6462±0.0037 \\
+AutoGluon & LGBM & 44 & 0.8838±0.0017 & 0.9556±0.0004 & 0.8836±0.0017 & 0.7616±0.0035 \\
+\hline
+\end{tabular}
+\caption{Results on electricity dataset (45,312 samples, 8 original features). Mean ± standard deviation over 3 trials.}
+\label{tab:results_electricity}
+\end{table}
+
+\clearpage
+
+\subsection{Phoneme Dataset}
+
+\begin{table}[!ht]
+\centering
+\footnotesize
+\begin{tabular}{@{}lllcccc@{}}
+\hline
+\textbf{Method} & \textbf{Model} & \textbf{Feat.} & \textbf{Accuracy} & \textbf{ROC-AUC} & \textbf{F1-Score} & \textbf{MCC} \\
+\hline
+Baseline & LR & 5 & 0.7515±0.0014 & 0.8119±0.0004 & 0.7416±0.0016 & 0.3649±0.0041 \\
+Baseline & MLP & 5 & 0.8590±0.0024 & 0.9256±0.0019 & 0.8584±0.0026 & 0.6577±0.0067 \\
+Baseline & LGBM & 5 & 0.8952±0.0030 & 0.9524±0.0011 & 0.8950±0.0030 & 0.7468±0.0070 \\
+\hline
+Featuretools & LR & 50 & 0.8119±0.0024 & 0.8798±0.0004 & 0.8093±0.0025 & 0.5358±0.0062 \\
+Featuretools & MLP & 50 & 0.8773±0.0020 & 0.9326±0.0018 & 0.8770±0.0021 & 0.7032±0.0053 \\
+Featuretools & LGBM & 50 & 0.9041±0.0008 & 0.9586±0.0020 & 0.9039±0.0008 & 0.7681±0.0021 \\
+\hline
+AutoGluon & LR & 20 & 0.8164±0.0016 & 0.8839±0.0002 & 0.8150±0.0015 & 0.5511±0.0037 \\
+AutoGluon & MLP & 20 & 0.8798±0.0015 & 0.9402±0.0006 & 0.8791±0.0011 & 0.7080±0.0020 \\
+AutoGluon & LGBM & 20 & 0.9019±0.0019 & 0.9569±0.0012 & 0.9019±0.0019 & 0.7635±0.0049 \\
+\hline
+\end{tabular}
+\caption{Results on phoneme dataset (5,404 samples, 5 original features). Mean ± standard deviation over 3 trials.}
+\label{tab:results_phoneme}
+\end{table}
+
+\vspace{1em}
+
+\subsection{KC1 Dataset}
+
+\begin{table}[!ht]
+\centering
+\footnotesize
+\begin{tabular}{@{}lllcccc@{}}
+\hline
+\textbf{Method} & \textbf{Model} & \textbf{Feat.} & \textbf{Accuracy} & \textbf{ROC-AUC} & \textbf{F1-Score} & \textbf{MCC} \\
+\hline
+Baseline & LR & 21 & 0.8559±0.0025 & 0.8024±0.0019 & 0.8241±0.0030 & 0.2890±0.0171 \\
+Baseline & MLP & 21 & 0.8630±0.0017 & 0.7939±0.0069 & 0.8408±0.0027 & 0.3620±0.0111 \\
+Baseline & LGBM & 21 & 0.8551±0.0043 & 0.7844±0.0086 & 0.8400±0.0049 & 0.3559±0.0200 \\
+\hline
+Featuretools & LR & 50 & 0.8565±0.0017 & 0.8020±0.0020 & 0.8246±0.0015 & 0.2925±0.0099 \\
+Featuretools & MLP & 50 & 0.8601±0.0025 & 0.7910±0.0061 & 0.8364±0.0026 & 0.3410±0.0100 \\
+Featuretools & LGBM & 50 & 0.8544±0.0026 & 0.7860±0.0037 & 0.8397±0.0031 & 0.3549±0.0141 \\
+\hline
+AutoGluon & LR & 50 & 0.8566±0.0012 & 0.7988±0.0015 & 0.8251±0.0026 & 0.2939±0.0110 \\
+AutoGluon & MLP & 50 & 0.8622±0.0020 & 0.7968±0.0033 & 0.8396±0.0038 & 0.3553±0.0154 \\
+AutoGluon & LGBM & 50 & 0.8521±0.0026 & 0.7762±0.0101 & 0.8368±0.0032 & 0.3422±0.0145 \\
+\hline
+\end{tabular}
+\caption{Results on KC1 dataset (2,109 samples, 21 original features). Mean ± standard deviation over 3 trials.}
+\label{tab:results_kc1}
+\end{table}
